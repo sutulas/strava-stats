@@ -1,11 +1,11 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, OnDestroy, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-weekly-pace-chart',
   templateUrl: './weekly-pace-chart.component.html',
   styleUrls: ['./weekly-pace-chart.component.css']
 })
-export class WeeklyPaceChartComponent implements OnInit, OnChanges {
+export class WeeklyPaceChartComponent implements OnInit, OnChanges, OnDestroy {
   @Input() weeklyStats: any[] = [];
   
   chartData: any[] = [];
@@ -18,6 +18,7 @@ export class WeeklyPaceChartComponent implements OnInit, OnChanges {
   tooltipY = 0;
   tooltipData: any = null;
   private tooltipTimeout: any = null;
+  private isHoveringChart = false;
 
   ngOnInit(): void {
     this.updateChart();
@@ -26,6 +27,31 @@ export class WeeklyPaceChartComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['weeklyStats']) {
       this.updateChart();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
+  }
+
+  @HostListener('mouseenter')
+  onChartEnter(): void {
+    this.isHoveringChart = true;
+  }
+
+  @HostListener('mouseleave')
+  onChartLeave(): void {
+    this.isHoveringChart = false;
+    this.hideTooltip();
+  }
+
+  @HostListener('document:mousemove', ['$event'])
+  onGlobalMouseMove(event: MouseEvent): void {
+    // If we're not hovering the chart and tooltip is visible, hide it
+    if (!this.isHoveringChart && this.showTooltip) {
+      this.hideTooltip();
     }
   }
 
@@ -259,12 +285,14 @@ export class WeeklyPaceChartComponent implements OnInit, OnChanges {
   }
 
   onPointLeave(): void {
-    // Clear the timeout if it exists
+    this.hideTooltip();
+  }
+
+  private hideTooltip(): void {
     if (this.tooltipTimeout) {
       clearTimeout(this.tooltipTimeout);
       this.tooltipTimeout = null;
     }
-    
     this.showTooltip = false;
   }
 
