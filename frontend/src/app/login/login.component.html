@@ -1,0 +1,37 @@
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <div>
+      <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-orange-100">
+        <svg class="h-8 w-8 text-orange-600" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        Welcome to Strava Stats
+      </h2>
+      <p class="mt-2 text-center text-sm text-gray-600">
+        Connect your Strava account to analyze your fitness data
+      </p>
+    </div>
+    
+    <div class="mt-8 space-y-6">
+      <div>
+        <button
+          (click)="loginWithStrava()"
+          class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          Connect with Strava
+        </button>
+      </div>
+      
+      <div class="text-center">
+        <p class="text-xs text-gray-500">
+          By connecting, you agree to share your Strava activity data with this application
+        </p>
+      </div>
+    </div>
+  </div>
+</div> 

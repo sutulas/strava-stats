@@ -1,0 +1,44 @@
+<div class="results-container">
+  <div *ngIf="response" class="results-content">
+    <div class="results-header">
+      <h3>Analysis Results</h3>
+      <button type="button" class="btn btn-clear" (click)="onClearResults()">
+        <i class="clear-icon">✕</i>
+        Clear
+      </button>
+    </div>
+    
+    <div class="results-details">
+      <div class="query-info">
+        <h4>Your Query</h4>
+        <p class="query-text">{{ response.query }}</p>
+      </div>
+      
+      <div class="response-info">
+        <h4>Analysis</h4>
+        <div class="response-text">
+          <markdown [data]="response.response"></markdown>
+        </div>
+      </div>
+      
+      <div class="execution-info">
+        <div class="info-item">
+          <span class="info-label">Execution Time:</span>
+          <span class="info-value">{{ response.execution_time.toFixed(2) }} seconds</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Timestamp:</span>
+          <span class="info-value">{{ response.timestamp | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Display -->
+    <div *ngIf="chartUrl && response.chart_generated" class="chart-section">
+      <h4>Generated Visualization</h4>
+      <div class="chart-container">
+        <img [src]="chartUrl" alt="Generated chart" class="chart-image">
+      </div>
+    </div>
+  </div>
+</div> 

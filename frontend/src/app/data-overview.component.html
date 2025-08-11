@@ -1,0 +1,127 @@
+<div class="overview-container">
+  <div class="overview-header">
+    <div class="header-content">
+      <h2>Dataset Overview</h2>
+      <p>Comprehensive analysis of your Strava running data</p>
+    </div>
+    <button type="button" class="btn btn-refresh" (click)="refreshData()" [disabled]="isLoading">
+      <i class="refresh-icon">🔄</i>
+      {{ isLoading ? 'Loading...' : 'Refresh Data' }}
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p>Loading dataset information...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-banner">
+    <i class="error-icon">⚠️</i>
+    <div class="error-content">
+      <strong>Error loading data:</strong> {{ error }}
+    </div>
+  </div>
+
+  <!-- Data Overview -->
+  <div *ngIf="dataOverview && !isLoading" class="overview-content">
+    <!-- Key Statistics -->
+    <section class="stats-section">
+      <h3>Key Statistics</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <h4>Total Activities</h4>
+            <p class="stat-value">{{ dataOverview.total_activities }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card" *ngIf="dataOverview.date_range.start">
+          <div class="stat-icon">📅</div>
+          <div class="stat-content">
+            <h4>Date Range</h4>
+            <p class="stat-value">
+              {{ dataOverview.date_range.start | date:'MMM d, y' }} - 
+              {{ dataOverview.date_range.end | date:'MMM d, y' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-content">
+            <h4>Data Columns</h4>
+            <p class="stat-value">{{ dataOverview.columns.length }} columns</p>
+          </div>
+        </div>
+
+        <div class="stat-card" *ngIf="dataOverview.activity_types">
+          <div class="stat-icon">🏃</div>
+          <div class="stat-content">
+            <h4>Activity Types</h4>
+            <p class="stat-value">{{ getActivityTypesKeys().length }} types</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity Types Breakdown -->
+    <section *ngIf="dataOverview.activity_types && getActivityTypesKeys().length > 0" class="activity-section">
+      <h3>Activity Types Breakdown</h3>
+      <div class="activity-grid">
+        <div *ngFor="let activity of dataOverview.activity_types | keyvalue" class="activity-card">
+          <div class="activity-header">
+            <span class="activity-name">{{ activity.key }}</span>
+            <span class="activity-count">{{ activity.value }}</span>
+          </div>
+          <div class="activity-bar">
+            <div class="activity-progress" 
+                 [style.width.%]="(activity.value / getMaxActivityCount()) * 100">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Columns -->
+    <section class="columns-section">
+      <h3>Available Data Fields</h3>
+      <div class="columns-grid">
+        <div *ngFor="let column of dataOverview.columns" class="column-item">
+          <span class="column-name">{{ column }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sample Data -->
+    <section *ngIf="dataOverview.sample_data && dataOverview.sample_data.length > 0" class="sample-section">
+      <h3>Sample Data (First 3 records)</h3>
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th *ngFor="let column of dataOverview.columns">{{ column }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of dataOverview.sample_data">
+              <td *ngFor="let column of dataOverview.columns">
+                {{ row[column] }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Data Timestamp -->
+    <div class="data-timestamp">
+      <i class="timestamp-icon">🕒</i>
+      <span>Data loaded at: {{ dataOverview.data_loaded_at | date:'medium' }}</span>
+    </div>
+  </div>
+</div> 

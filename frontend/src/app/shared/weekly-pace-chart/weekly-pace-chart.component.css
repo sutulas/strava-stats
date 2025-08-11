@@ -1,0 +1,94 @@
+.chart-container {
+  @apply w-full;
+}
+
+.chart-wrapper {
+  @apply bg-white rounded-lg p-6;
+}
+
+.chart-header {
+  @apply border-b border-gray-200 pb-4;
+}
+
+.chart-content {
+  @apply relative;
+}
+
+.chart-area {
+  @apply relative h-64;
+}
+
+.y-axis {
+  @apply absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-gray-500 font-medium;
+}
+
+.y-label {
+  @apply transform -translate-x-2;
+}
+
+.chart-main {
+  @apply absolute left-8 right-0 top-0 h-full;
+}
+
+.grid-lines {
+  @apply absolute inset-0;
+  background-image: 
+    linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+  background-size: 20% 33.33%;
+  opacity: 0.3;
+}
+
+.line-svg {
+  @apply absolute inset-0 w-full h-full;
+}
+
+.line-path {
+  @apply transition-all duration-300;
+}
+
+.data-point {
+  @apply absolute w-3 h-3 bg-orange-500 border-2 border-white rounded-full cursor-pointer transform -translate-x-1.5 -translate-y-1.5 transition-all duration-200 z-10;
+}
+
+.data-point:hover {
+  @apply bg-orange-600 w-4 h-4 -translate-x-2 -translate-y-2 shadow-lg;
+}
+
+.x-axis {
+  @apply absolute bottom-0 left-8 right-0 h-12;
+}
+
+.x-label {
+  @apply absolute text-xs text-gray-600 font-medium transform -translate-x-1/2 whitespace-nowrap;
+}
+
+.chart-tooltip {
+  @apply fixed z-50 pointer-events-none opacity-0 transition-opacity duration-200;
+  max-width: 250px;
+}
+
+.chart-tooltip.visible {
+  @apply opacity-100;
+}
+
+.tooltip-content {
+  @apply bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-area {
+    @apply h-48;
+  }
+  
+  .y-label,
+  .x-label {
+    @apply text-xs;
+  }
+  
+  .tooltip-content {
+    @apply text-xs px-2 py-1;
+  }
+} 
