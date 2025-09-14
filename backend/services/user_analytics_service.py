@@ -42,11 +42,16 @@ class UserAnalyticsService:
                 }
             else:
                 logger.error(f"Failed to fetch user profile: {response.status_code}")
-                return {}
+                # Return error information instead of empty dict
+                error_detail = response.json().get('message', 'Unknown error') if response.content else 'No response content'
+                raise Exception(f"Strava API error {response.status_code}: {error_detail}")
                 
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Network error fetching user profile: {e}")
+            raise Exception(f"Network error: {str(e)}")
         except Exception as e:
             logger.error(f"Error fetching user profile: {e}")
-            return {}
+            raise Exception(f"Failed to fetch user profile: {str(e)}")
     
     def get_user_stats(self, data_file_path: str = "fixed_formatted_run_data.csv") -> Dict[str, Any]:
         """Calculate comprehensive user statistics from processed data"""

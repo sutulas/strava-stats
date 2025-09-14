@@ -1,0 +1,140 @@
+.chart-display-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  margin-bottom: 24px;
+}
+
+.chart-display-card mat-card-header {
+  display: flex;
+  align-items: center;
+  padding: 24px 24px 16px 24px;
+}
+
+.chart-display-card mat-card-title {
+  color: #333 !important;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.chart-display-card mat-card-subtitle {
+  color: #666 !important;
+  font-size: 14px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.download-button {
+  color: #1976d2 !important;
+}
+
+.download-button:hover {
+  background-color: rgba(25, 118, 210, 0.1);
+}
+
+.chart-image-container {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.chart-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chart-fallback {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 32px;
+}
+
+.fallback-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.fallback-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.fallback-title {
+  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.fallback-description {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.fallback-list {
+  text-align: left;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.fallback-list mat-list-item {
+  color: #666;
+  height: auto;
+  min-height: 40px;
+}
+
+.fallback-list mat-icon {
+  color: #f44336;
+  margin-right: 8px;
+}
+
+.fallback-list span {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-display-card mat-card-header {
+    padding: 16px;
+  }
+  
+  .chart-image-container {
+    padding: 8px;
+  }
+  
+  .chart-fallback {
+    padding: 16px;
+    min-height: 200px;
+  }
+  
+  .fallback-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+  }
+  
+  .fallback-title {
+    font-size: 18px;
+  }
+  
+  .fallback-description {
+    font-size: 14px;
+  }
+} 

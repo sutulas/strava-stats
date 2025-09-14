@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Header
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
@@ -10,6 +10,7 @@ from datetime import datetime
 import json
 
 from services.chat_workflow import StravaWorkflow
+from services.rate_limiting_service import rate_limiter
 from langchain.schema import HumanMessage
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,13 @@ class ErrorResponse(BaseModel):
     detail: Optional[str] = None
     timestamp: str
 
+class RateLimitResponse(BaseModel):
+    query_count: int
+    remaining_queries: int
+    max_queries: int
+    session_start: Optional[str] = None
+    rate_limited: bool
+
 # Global workflow instance (will be set by main.py)
 workflow: Optional[StravaWorkflow] = None
 
@@ -55,6 +63,7 @@ def check_data_file():
 @router.post("/query", response_model=QueryResponse)
 async def process_query(
     request: QueryRequest,
+    authorization: str = Header(...),
     workflow_instance: StravaWorkflow = Depends(get_workflow)
 ):
     """
@@ -66,6 +75,23 @@ async def process_query(
     start_time = datetime.now()
     
     try:
+        # Extract access token from authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        if not access_token:
+            raise HTTPException(status_code=401, detail="No access token provided")
+        
+        # Check rate limit
+        if not rate_limiter.record_query(access_token):
+            remaining = rate_limiter.get_remaining_queries(access_token)
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Rate limit exceeded. You have used all {rate_limiter.max_queries} queries for this session. Please log out and log back in to reset your limit."
+            )
+        
         # Check if data file exists
         check_data_file()
         
@@ -84,7 +110,7 @@ async def process_query(
         # Determine response based on workflow result
         if result["chart_generated"]:
             # Chart was generated
-            response_text = f"Chart generated successfully. {result["chart_generated"]}"
+            response_text = f"View the chart below."
             chart_generated = True
             chart_url = "/chart.png" if os.path.exists("chart.png") else None
         elif result["response"]:
@@ -174,6 +200,37 @@ async def get_data_overview():
         raise HTTPException(
             status_code=500,
             detail=f"Error retrieving data overview: {str(e)}"
+        )
+
+@router.get("/rate-limit", response_model=RateLimitResponse)
+async def get_rate_limit_status(authorization: str = Header(...)):
+    """
+    Get the current rate limit status for the user.
+    
+    Returns information about how many queries the user has made and how many remain.
+    """
+    try:
+        # Extract access token from authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        if not access_token:
+            raise HTTPException(status_code=401, detail="No access token provided")
+        
+        # Get rate limit info
+        session_info = rate_limiter.get_session_info(access_token)
+        
+        return RateLimitResponse(**session_info)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting rate limit status: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving rate limit status: {str(e)}"
         )
 
 @router.get("/examples")

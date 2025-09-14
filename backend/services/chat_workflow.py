@@ -108,7 +108,7 @@ class StravaWorkflow:
         Return only the enhanced query, be concise not conversational.
         '''
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1",
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -144,20 +144,32 @@ class StravaWorkflow:
 
             Given the dataset above, generate seaborn python code to create a chart for the user query: {query}.
 
+            Be aware, there may be 0 or N/A values in the dataset (especially in the heartrate column).
+            Handle these values appropriately.
+
             Requirements:
             - Use seaborn and matplotlib for visualization
             - Import necessary libraries (seaborn, matplotlib.pyplot, pandas)
             - Refer to the dataset as 'df' in the code
             - Save the chart to 'chart.png' using plt.savefig('chart.png', dpi=300, bbox_inches='tight')
             - Clear the plot after saving using plt.clf()
-            - Make the chart visually appealing with proper styling
+            - Apply dark theme styling to match the frontend design:
+              * Set figure background to black (#000000)
+              * Set axes background to dark gray (#111111)
+              * Use orange (#ff6b35) as the primary accent color for data visualization
+              * Use white (#ffffff) for text, titles, and labels
+              * Use light gray (#aaaaaa) for secondary text like tick labels
+              * Use dark gray (#333333) for grid lines and borders
+            - Style the chart with: plt.style.use('dark_background') and customize colors manually
+            - Make the chart visually appealing with proper styling that matches a dark theme
             - Include appropriate title, labels, and legend if needed
+            - Ensure all text is readable against the dark background
 
             RETURN ONLY THE CODE OR ELSE IT WILL FAIL.
         '''
         try:
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4.1",
                 messages=[
                     {"role": "user", "content": prompt}
                 ]
@@ -213,11 +225,11 @@ class StravaWorkflow:
     def _prepare_data(self, state: WorkflowState) -> WorkflowState:
         query = state["enhanced_query"]
         prompt = f'''
-            You are a data analysis expert. You are given a dataset and a user query. You need to generate pandas python code to answer the user query.
+            You are a data analysis expert. You are given a dataset and a user query. You need to generate pandas python code to answer the user query. DO NOT GENERATE ANY CHARTS.
             Ensure you answer the question the user is asking directly. 
             {state["overview"]}
 
-            Given the overview of the dataset above, generate python code to answer the user query: {query}.
+            Given the overview of the dataset above, generate python code to answer the user query: {query}. 
 
             Refer to the dataset as 'df' in the code.
 
@@ -238,7 +250,7 @@ class StravaWorkflow:
         '''
         try:
             response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1",
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -300,7 +312,7 @@ class StravaWorkflow:
         Please provide feedback on the generated seaborn code, whether the code is valid in syntax and faithful to the user query. If the code appears valid and faithful to the user query, return only the word "valid".
         '''
         response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[
             {"role": "user", "content": prompt}
         ]
@@ -336,7 +348,7 @@ class StravaWorkflow:
             '''
 
             response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1",
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -361,7 +373,7 @@ class StravaWorkflow:
         Please provide feedback on the generated code, whether the code is valid in syntax and faithful to the user query. If the code is appears valid and faithful to the user query, return only the word "valid".
         '''
         response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-4.1",
         messages=[
             {"role": "user", "content": prompt}
         ]
@@ -393,7 +405,7 @@ class StravaWorkflow:
             '''
 
             response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1",
             messages=[
                 {"role": "user", "content": prompt}
             ]
@@ -423,7 +435,7 @@ class StravaWorkflow:
         User query: {query}
         '''
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4.1",
             messages=[{"role": "user", "content": prompt}]
         )
         state["response"] = response.choices[0].message.content

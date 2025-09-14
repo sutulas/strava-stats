@@ -1,0 +1,104 @@
+<mat-sidenav-container class="sidenav-container" *ngIf="showNavigation">
+  <!-- Sidebar Navigation -->
+  <mat-sidenav #drawer class="sidenav" mode="side" opened>
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo">
+        <mat-icon class="logo-icon">directions_run</mat-icon>
+        <span class="logo-text">StravaStats</span>
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <mat-nav-list>
+      <!-- Dashboard Section -->
+      <div class="nav-section">
+        <div class="section-title">DASHBOARD</div>
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="active">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          <span matListItemTitle>Dashboard</span>
+        </a>
+      </div>
+
+      <!-- Analytics Section -->
+      <div class="nav-section">
+        <div class="section-title">ANALYTICS</div>
+        <a mat-list-item routerLink="/overview" routerLinkActive="active">
+          <mat-icon matListItemIcon>analytics</mat-icon>
+          <span matListItemTitle>Data Overview</span>
+        </a>
+        <a mat-list-item routerLink="/query" routerLinkActive="active">
+          <mat-icon matListItemIcon>psychology</mat-icon>
+          <span matListItemTitle>AI Analysis</span>
+        </a>
+      </div>
+
+      <!-- Profile Section -->
+      <div class="nav-section">
+        <div class="section-title">ACCOUNT</div>
+        <a mat-list-item routerLink="/profile" routerLinkActive="active">
+          <mat-icon matListItemIcon>person</mat-icon>
+          <span matListItemTitle>Profile</span>
+        </a>
+      </div>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <!-- Main Content Area -->
+  <mat-sidenav-content>
+    <!-- Header Bar -->
+    <mat-toolbar class="header-toolbar">
+      <button mat-icon-button (click)="drawer.toggle()" class="menu-button">
+        <mat-icon>menu</mat-icon>
+      </button>
+      
+      <span class="page-title">{{ getPageTitle() }}</span>
+      
+      <div class="spacer"></div>
+      
+      <!-- Search Bar -->
+      <mat-form-field class="search-field" appearance="outline">
+        <mat-label>Search...</mat-label>
+        <input matInput placeholder="Search your data">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      
+      <!-- Notifications -->
+      <button mat-icon-button class="notification-button">
+        <mat-icon>notifications</mat-icon>
+        <span class="notification-badge">2</span>
+      </button>
+      
+      <!-- User Menu -->
+      <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-button">
+        <mat-icon>account_circle</mat-icon>
+      </button>
+      
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item>
+          <mat-icon>person</mat-icon>
+          <span>Profile</span>
+        </button>
+        <button mat-menu-item>
+          <mat-icon>settings</mat-icon>
+          <span>Settings</span>
+        </button>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<!-- Login/Token pages without navigation -->
+<div *ngIf="!showNavigation" class="login-container">
+  <router-outlet></router-outlet>
+</div> 

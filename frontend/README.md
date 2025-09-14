@@ -1,110 +1,73 @@
 # Strava Stats Frontend
 
-This is the frontend application for Strava Stats, built with Angular and Tailwind CSS.
+A modern React frontend for analyzing Strava running data with AI-powered insights.
 
 ## Features
 
-- **Strava Authentication**: Secure OAuth2 login with Strava
-- **Dashboard**: View your Strava activity statistics
-- **Data Analysis**: Query and analyze your fitness data
-- **Data Overview**: Comprehensive view of your activities
-- **Responsive Design**: Modern, mobile-friendly interface
+- **Dark Theme Design**: Clean, modern interface with dark theme and orange accents
+- **Strava Authentication**: Secure OAuth integration with Strava
+- **AI-Powered Analysis**: Natural language queries about your running data
+- **Interactive Charts**: Beautiful visualizations using Recharts
+- **Data Management**: View, refresh, and download your running data
+- **Responsive Design**: Works on desktop and mobile devices
+
+## Pages
+
+1. **Login Page**: Strava OAuth authentication with proper branding
+2. **Dashboard**: Overview of your running statistics and quick metrics
+3. **Profile**: Personal information and running charts
+4. **Analysis**: AI-powered query interface for data insights
+5. **Data**: Data management and download functionality
 
 ## Setup
-
-### Prerequisites
-
-- Node.js (v16 or higher)
-- Angular CLI (`npm install -g @angular/cli`)
-- Strava API credentials
-
-### Installation
 
 1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Configure Strava API credentials:
-   - Create a Strava API application at [Strava API Settings](https://www.strava.com/settings/api)
-   - Copy your Client ID
-   - Update `src/environments/environment.ts` with your Client ID:
-     ```typescript
-     export const environment = {
-       production: false,
-       strava: {
-         clientId: 'YOUR_ACTUAL_CLIENT_ID',
-         redirectUri: 'http://localhost:4200/token'
-       }
-     };
-     ```
+2. Create a `.env` file with your Strava API credentials:
+   ```
+   # Get these from https://www.strava.com/settings/api
+   REACT_APP_STRAVA_CLIENT_ID=your_strava_client_id
+   REACT_APP_REDIRECT_URI=http://localhost:3000/auth/callback
+   REACT_APP_API_BASE_URL=http://localhost:8000
+   ```
+   
+   **Note**: You need to create a Strava API application at https://www.strava.com/settings/api to get your client ID and set up the redirect URI.
 
 3. Start the development server:
    ```bash
-   ng serve
+   npm start
    ```
 
-4. Open your browser and navigate to `http://localhost:4200`
+## Tech Stack
 
-## Authentication Flow
+- **React 18** with TypeScript
+- **Material-UI** for components and theming
+- **React Router** for navigation
+- **Recharts** for data visualization
+- **Axios** for API communication
 
-1. **Login Page**: Users click "Connect with Strava" button
-2. **Strava OAuth**: User is redirected to Strava to authorize the application
-3. **Callback**: Strava redirects back to `/token` with an authorization code
-4. **Token Exchange**: The backend exchanges the code for access tokens
-5. **Dashboard**: User is redirected to the dashboard with full access
+## Design System
 
-## Backend Integration
+- **Colors**: Black background (#000000), white text (#ffffff), orange accents (#ff6b35)
+- **Typography**: Inter/Roboto/Poppins font family
+- **Layout**: Sidebar navigation with main content area
+- **Components**: Cards, buttons, and forms with consistent styling
 
-The frontend expects a backend service running on `http://localhost:8000` with the following endpoints:
+## API Integration
 
-- `POST /auth/token` - Exchange authorization code for tokens
-- `GET /activities` - Retrieve user activities
-- `GET /profile` - Get user profile information
+The frontend integrates with the Strava Stats backend API:
+- Authentication endpoints
+- User profile and statistics
+- AI-powered query processing
+- Chart generation
+- Data management
 
-## Development
+## Strava Compliance
 
-### Project Structure
-
-```
-src/
-├── app/
-│   ├── login/              # Login component
-│   ├── token-callback/     # OAuth callback handler
-│   ├── dashboard/          # Main dashboard
-│   ├── services/           # API services
-│   └── shared/             # Shared components
-├── environments/            # Environment configuration
-└── assets/                 # Static assets
-```
-
-### Key Components
-
-- **LoginComponent**: Handles initial Strava authentication
-- **TokenCallbackComponent**: Processes OAuth callback and token exchange
-- **StravaAuthService**: Manages authentication state and tokens
-- **StravaDataService**: Handles API communication with backend
-
-### Environment Configuration
-
-- `environment.ts` - Development configuration
-- `environment.prod.ts` - Production configuration
-
-## Building for Production
-
-```bash
-ng build --configuration production
-```
-
-## Troubleshooting
-
-- **CORS Issues**: Ensure your backend allows requests from `http://localhost:4200`
-- **Authentication Errors**: Check that your Strava Client ID is correct
-- **Redirect Issues**: Verify the redirect URI matches your Strava API settings
-
-## Security Notes
-
-- Never commit API keys or secrets to version control
-- Use environment variables for sensitive configuration
-- Implement proper token storage and refresh mechanisms
-- Consider implementing route guards for protected routes 
+- Uses official Strava logo and branding
+- Includes "Built with Strava" attribution
+- Follows Strava API guidelines
+- Proper OAuth 2.0 implementation

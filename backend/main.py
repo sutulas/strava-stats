@@ -218,16 +218,16 @@ async def get_user_profile(authorization: str = Header(...)):
     try:
         # Extract token from Authorization header
         if not authorization.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Invalid authorization header")
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
         
         access_token = authorization.replace("Bearer ", "")
+        
+        if not access_token:
+            raise HTTPException(status_code=401, detail="No access token provided")
         
         # Get user profile
         analytics_service = UserAnalyticsService()
         profile_data = analytics_service.get_user_profile_data(access_token)
-        
-        if not profile_data:
-            raise HTTPException(status_code=404, detail="Failed to fetch user profile")
         
         return profile_data
         
@@ -235,7 +235,13 @@ async def get_user_profile(authorization: str = Header(...)):
         raise
     except Exception as e:
         logger.error(f"Failed to get user profile: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get user profile: {str(e)}")
+        # Check if it's a Strava API authentication error
+        if "401" in str(e) or "Unauthorized" in str(e):
+            raise HTTPException(status_code=401, detail="Invalid or expired Strava access token")
+        elif "Network error" in str(e):
+            raise HTTPException(status_code=503, detail="Unable to connect to Strava API")
+        else:
+            raise HTTPException(status_code=500, detail=f"Failed to get user profile: {str(e)}")
 
 @app.get("/user/stats")
 async def get_user_stats(authorization: str = Header(...)):
