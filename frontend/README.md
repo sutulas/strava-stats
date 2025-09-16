@@ -27,11 +27,17 @@ A modern React frontend for analyzing Strava running data with AI-powered insigh
    ```
 
 2. Create a `.env` file with your Strava API credentials:
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Then edit the `.env` file with your actual values:
    ```
    # Get these from https://www.strava.com/settings/api
    REACT_APP_STRAVA_CLIENT_ID=your_strava_client_id
    REACT_APP_REDIRECT_URI=http://localhost:3000/auth/callback
    REACT_APP_API_BASE_URL=http://localhost:8000
+   REACT_APP_ENVIRONMENT=development
    ```
    
    **Note**: You need to create a Strava API application at https://www.strava.com/settings/api to get your client ID and set up the redirect URI.

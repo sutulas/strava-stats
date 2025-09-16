@@ -17,9 +17,8 @@ import {
   TableRow,
   Paper,
   Chip,
-  Divider,
 } from '@mui/material';
-import { Download, TableChart, Refresh } from '@mui/icons-material';
+import { Download, Refresh } from '@mui/icons-material';
 import { apiService, DataOverview } from '../services/apiService';
 
 const DataPage: React.FC = () => {

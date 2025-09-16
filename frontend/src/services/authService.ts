@@ -8,8 +8,16 @@ import { apiService } from './apiService';
 //   }
 // }; 
 
-const STRAVA_CLIENT_ID = process.env.REACT_APP_STRAVA_CLIENT_ID || '169809';
-const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI || 'http://localhost:3000/auth/callback';
+const STRAVA_CLIENT_ID = process.env.REACT_APP_STRAVA_CLIENT_ID;
+const REDIRECT_URI = process.env.REACT_APP_REDIRECT_URI;
+
+// Validate required environment variables
+if (!STRAVA_CLIENT_ID) {
+  throw new Error('REACT_APP_STRAVA_CLIENT_ID environment variable is required');
+}
+if (!REDIRECT_URI) {
+  throw new Error('REACT_APP_REDIRECT_URI environment variable is required');
+}
 const STRAVA_AUTH_URL = 'https://www.strava.com/oauth/authorize';
 
 class AuthService {

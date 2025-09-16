@@ -16,7 +16,7 @@ import {
   Collapse,
   IconButton,
 } from '@mui/material';
-import { Send, Image, Refresh, ExpandMore, ExpandLess, Lightbulb } from '@mui/icons-material';
+import { Send, Image, Refresh, ExpandMore, ExpandLess } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
 import { apiService, QueryResponse, ExampleQueries, RateLimitStatus } from '../services/apiService';
 
