@@ -225,7 +225,7 @@ class StravaWorkflow:
     def _prepare_data(self, state: WorkflowState) -> WorkflowState:
         query = state["enhanced_query"]
         prompt = f'''
-            You are a data analysis expert. You are given a dataset and a user query. You need to generate pandas python code to answer the user query. DO NOT GENERATE ANY CHARTS.
+            You are a data analysis expert. You are given a dataset and a user query. You need to generate pandas python code to answer the user query. DO NOT GENERATE ANY GRAPHS.
             Ensure you answer the question the user is asking directly. 
             {state["overview"]}
 
@@ -246,7 +246,7 @@ class StravaWorkflow:
             - If using idxmax() or idxmin(), check if the DataFrame is not empty first
             - Handle NaN values appropriately
 
-            RETURN ONLY THE CODE OR ELSE IT WILL FAIL.
+            RETURN ONLY THE CODE OR ELSE IT WILL FAIL. DO NOT GENERATE ANY GRAPHS.
         '''
         try:
             response = client.chat.completions.create(
@@ -370,7 +370,7 @@ class StravaWorkflow:
 
         Generated code: {state["code"]}
 
-        Please provide feedback on the generated code, whether the code is valid in syntax and faithful to the user query. If the code is appears valid and faithful to the user query, return only the word "valid".
+        Please provide feedback on the generated code, whether the code is valid in syntax and faithful to the user query. Ensure no graphs/charts are generated. If the code is appears valid and faithful to the user query, return only the word "valid".
         '''
         response = client.chat.completions.create(
         model="gpt-4.1",
