@@ -59,42 +59,80 @@ app.include_router(analysis_router, tags=["analysis"])
 # Global workflow instance
 workflow = None
 
+async def initialize_workflow_with_retry():
+    """Initialize workflow with retry mechanism"""
+    global workflow
+    max_retries = 3
+    retry_delay = 2  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Workflow initialization attempt {attempt + 1}/{max_retries}")
+            
+            # Check for required environment variables
+            openai_key = os.getenv("OPENAI_API_KEY")
+            if not openai_key:
+                logger.error("OPENAI_API_KEY environment variable is not set")
+                if attempt < max_retries - 1:
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    await asyncio.sleep(retry_delay)
+                    continue
+                else:
+                    logger.warning("Workflow initialization skipped due to missing environment variables")
+                    return False
+            
+            logger.info("Environment variables validated")
+            
+            # Initialize workflow
+            workflow = StravaWorkflow()
+            logger.info("StravaWorkflow instance created successfully")
+            
+            # Set the global workflow instance in the analysis router
+            import routes.analysis
+            routes.analysis.workflow = workflow
+            logger.info("Workflow instance set in analysis router")
+            
+            logger.info("Strava workflow initialized successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize workflow (attempt {attempt + 1}): {e}")
+            logger.error(f"Error type: {type(e).__name__}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            if attempt < max_retries - 1:
+                logger.info(f"Retrying in {retry_delay} seconds...")
+                await asyncio.sleep(retry_delay)
+            else:
+                logger.error("All workflow initialization attempts failed")
+                return False
+    
+    return False
+
 @app.on_event("startup")
 async def startup_event():
-    """Initialize the workflow on startup"""
-    global workflow
-    workflow = StravaWorkflow()
-    try:
-        logger.info("Starting workflow initialization...")
-        
-        # Check for required environment variables
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key:
-            logger.error("OPENAI_API_KEY environment variable is not set")
-            # Don't raise exception, just log and continue
-            logger.warning("Workflow initialization skipped due to missing environment variables")
-            return
-        
-        logger.info("Environment variables validated")
-        
-        # Initialize workflow
-        workflow = StravaWorkflow()
-        logger.info("StravaWorkflow instance created successfully")
-        
-        # Set the global workflow instance in the analysis router
-        import routes.analysis
-        routes.analysis.workflow = workflow
-        logger.info("Workflow instance set in analysis router")
-        
-        logger.info("Strava workflow initialized successfully")
-        
-    except Exception as e:
-        logger.error(f"Failed to initialize workflow: {e}")
-        logger.error(f"Error type: {type(e).__name__}")
-        import traceback
-        logger.error(f"Traceback: {traceback.format_exc()}")
-        # Don't raise the exception to prevent server startup failure
-        # The health endpoint will show workflow_initialized: false
+    """Initialize the workflow on startup with retry mechanism"""
+    logger.info("Starting workflow initialization...")
+    
+    # Try immediate initialization
+    success = await initialize_workflow_with_retry()
+    
+    if not success:
+        logger.warning("Immediate workflow initialization failed, scheduling delayed initialization")
+        # Schedule delayed initialization as background task
+        asyncio.create_task(delayed_workflow_initialization())
+
+async def delayed_workflow_initialization():
+    """Delayed workflow initialization as fallback"""
+    logger.info("Starting delayed workflow initialization...")
+    await asyncio.sleep(5)  # Wait 5 seconds
+    
+    success = await initialize_workflow_with_retry()
+    if success:
+        logger.info("Delayed workflow initialization successful")
+    else:
+        logger.error("Delayed workflow initialization also failed")
 
 @app.get("/")
 async def root():
@@ -332,42 +370,20 @@ async def get_recent_activities(authorization: str = Header(...), limit: int = 1
 @app.post("/admin/initialize-workflow")
 async def manual_workflow_initialization():
     """Manually initialize the workflow (admin endpoint)"""
-    global workflow
-    try:
-        logger.info("Manual workflow initialization requested...")
-        
-        # Check for required environment variables
-        openai_key = os.getenv("OPENAI_API_KEY")
-        if not openai_key:
-            return {
-                "success": False,
-                "error": "OPENAI_API_KEY environment variable is not set",
-                "timestamp": datetime.now().isoformat()
-            }
-        
-        # Initialize workflow
-        workflow = StravaWorkflow()
-        logger.info("StravaWorkflow instance created successfully")
-        
-        # Set the global workflow instance in the analysis router
-        import routes.analysis
-        routes.analysis.workflow = workflow
-        logger.info("Workflow instance set in analysis router")
-        
+    logger.info("Manual workflow initialization requested...")
+    
+    success = await initialize_workflow_with_retry()
+    
+    if success:
         return {
             "success": True,
             "message": "Workflow initialized successfully",
             "timestamp": datetime.now().isoformat()
         }
-        
-    except Exception as e:
-        logger.error(f"Manual workflow initialization failed: {e}")
-        import traceback
-        logger.error(f"Traceback: {traceback.format_exc()}")
+    else:
         return {
             "success": False,
-            "error": str(e),
-            "error_type": type(e).__name__,
+            "error": "Workflow initialization failed after all retry attempts",
             "timestamp": datetime.now().isoformat()
         }
 
