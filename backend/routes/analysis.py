@@ -86,11 +86,10 @@ async def process_query(
         
         # Check rate limit
         if not rate_limiter.record_query(access_token):
-            session_info = rate_limiter.get_session_info(access_token)
-            max_queries = session_info["max_queries"]
+            remaining = rate_limiter.get_remaining_queries(access_token)
             raise HTTPException(
                 status_code=429, 
-                detail=f"Rate limit exceeded. You have used all {max_queries} queries for this session."
+                detail=f"Rate limit exceeded. You have used all {rate_limiter.max_queries} queries for this session. Please log out and log back in to reset your limit."
             )
         
         # Check if data file exists
