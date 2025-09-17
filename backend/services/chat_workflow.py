@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional, TypedDict
 from langgraph.graph import StateGraph, START, END
 # from langchain_openai import ChatOpenAI
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import pandas as pd
 import sys
 import json
