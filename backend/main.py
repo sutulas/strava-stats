@@ -66,7 +66,6 @@ async def startup_event():
     try:
         workflow = StravaWorkflow()
         # Set the global workflow instance in the analysis router
-        from routes.analysis import workflow as router_workflow
         import routes.analysis
         routes.analysis.workflow = workflow
         logger.info("Strava workflow initialized successfully")
@@ -162,7 +161,6 @@ async def refresh_user_data(authorization: str = Header(...)):
                 # Reload the workflow with new data
                 workflow = StravaWorkflow()
                 # Update the router workflow instance
-                from routes.analysis import workflow as router_workflow
                 import routes.analysis
                 routes.analysis.workflow = workflow
                 logger.info("Workflow updated with fresh data")
