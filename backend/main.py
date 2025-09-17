@@ -63,6 +63,7 @@ workflow = None
 async def startup_event():
     """Initialize the workflow on startup"""
     global workflow
+    workflow = StravaWorkflow()
     try:
         logger.info("Starting workflow initialization...")
         
@@ -70,7 +71,9 @@ async def startup_event():
         openai_key = os.getenv("OPENAI_API_KEY")
         if not openai_key:
             logger.error("OPENAI_API_KEY environment variable is not set")
-            raise ValueError("OPENAI_API_KEY environment variable is required")
+            # Don't raise exception, just log and continue
+            logger.warning("Workflow initialization skipped due to missing environment variables")
+            return
         
         logger.info("Environment variables validated")
         
@@ -195,17 +198,16 @@ async def refresh_user_data(authorization: str = Header(...)):
         
         # Update the workflow with new data
         global workflow
-        if workflow:
-            try:
-                # Reload the workflow with new data
-                workflow = StravaWorkflow()
-                # Update the router workflow instance
-                import routes.analysis
-                routes.analysis.workflow = workflow
-                logger.info("Workflow updated with fresh data")
-            except Exception as e:
-                logger.error(f"Failed to update workflow: {e}")
-                # Continue anyway, the data is still processed
+        try:
+            # Reload the workflow with new data
+            workflow = StravaWorkflow()
+            # Update the router workflow instance
+            import routes.analysis
+            routes.analysis.workflow = workflow
+            logger.info("Workflow updated with fresh data")
+        except Exception as e:
+            logger.error(f"Failed to update workflow: {e}")
+            # Continue anyway, the data is still processed
         
         return DataRefreshResponse(
             message="Data refreshed successfully",
