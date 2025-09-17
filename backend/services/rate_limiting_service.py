@@ -26,7 +26,7 @@ class RateLimitingService:
         Initialize the rate limiting service.
         
         Args:
-            max_queries: Maximum number of queries allowed per session (default: 3)
+            max_queries: Maximum number of queries allowed per session (default: 5)
         """
         self.max_queries = max_queries
         self.query_counts: Dict[str, int] = {}
