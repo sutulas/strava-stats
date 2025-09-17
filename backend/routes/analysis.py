@@ -47,9 +47,33 @@ class RateLimitResponse(BaseModel):
 workflow: Optional[StravaWorkflow] = None
 
 def get_workflow() -> StravaWorkflow:
-    """Dependency to get the workflow instance"""
+    """Dependency to get the workflow instance, auto-initializing if needed"""
+    global workflow
+    
     if workflow is None:
-        raise HTTPException(status_code=503, detail="Workflow not initialized")
+        logger.info("Workflow not initialized, attempting auto-initialization...")
+        try:
+            # Check for required environment variables
+            import os
+            openai_key = os.getenv("OPENAI_API_KEY")
+            if not openai_key:
+                logger.error("OPENAI_API_KEY environment variable is not set")
+                raise HTTPException(
+                    status_code=503, 
+                    detail="Workflow initialization failed: OPENAI_API_KEY environment variable is not set"
+                )
+            
+            # Initialize workflow
+            workflow = StravaWorkflow()
+            logger.info("Workflow auto-initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to auto-initialize workflow: {e}")
+            raise HTTPException(
+                status_code=503, 
+                detail=f"Workflow initialization failed: {str(e)}"
+            )
+    
     return workflow
 
 def check_data_file():

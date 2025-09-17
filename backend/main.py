@@ -152,8 +152,9 @@ async def health_check():
     # Check environment variables
     openai_key_set = bool(os.getenv("OPENAI_API_KEY"))
     
-    # Check if workflow is properly initialized
+    # Check if workflow is properly initialized (or can be auto-initialized)
     workflow_initialized = workflow is not None
+    workflow_can_auto_init = bool(os.getenv("OPENAI_API_KEY"))
     
     # Additional diagnostic info
     diagnostic_info = {
@@ -171,6 +172,7 @@ async def health_check():
         "status": "healthy",
         "data_file_exists": data_file_exists,
         "workflow_initialized": workflow_initialized,
+        "workflow_can_auto_init": workflow_can_auto_init,
         "diagnostic_info": diagnostic_info,
         "timestamp": datetime.now().isoformat()
     }
