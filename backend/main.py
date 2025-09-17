@@ -64,14 +64,34 @@ async def startup_event():
     """Initialize the workflow on startup"""
     global workflow
     try:
+        logger.info("Starting workflow initialization...")
+        
+        # Check for required environment variables
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            logger.error("OPENAI_API_KEY environment variable is not set")
+            raise ValueError("OPENAI_API_KEY environment variable is required")
+        
+        logger.info("Environment variables validated")
+        
+        # Initialize workflow
         workflow = StravaWorkflow()
+        logger.info("StravaWorkflow instance created successfully")
+        
         # Set the global workflow instance in the analysis router
         import routes.analysis
         routes.analysis.workflow = workflow
+        logger.info("Workflow instance set in analysis router")
+        
         logger.info("Strava workflow initialized successfully")
+        
     except Exception as e:
         logger.error(f"Failed to initialize workflow: {e}")
-        raise e
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        # Don't raise the exception to prevent server startup failure
+        # The health endpoint will show workflow_initialized: false
 
 @app.get("/")
 async def root():
@@ -88,10 +108,29 @@ async def health_check():
     """Detailed health check endpoint"""
     data_file_exists = os.path.exists("fixed_formatted_run_data.csv")
     
+    # Check environment variables
+    openai_key_set = bool(os.getenv("OPENAI_API_KEY"))
+    
+    # Check if workflow is properly initialized
+    workflow_initialized = workflow is not None
+    
+    # Additional diagnostic info
+    diagnostic_info = {
+        "environment_variables": {
+            "OPENAI_API_KEY_set": openai_key_set
+        },
+        "files": {
+            "data_file_exists": data_file_exists,
+            "current_directory": os.getcwd(),
+            "files_in_directory": os.listdir(".") if os.path.exists(".") else []
+        }
+    }
+    
     return {
         "status": "healthy",
         "data_file_exists": data_file_exists,
-        "workflow_initialized": workflow is not None,
+        "workflow_initialized": workflow_initialized,
+        "diagnostic_info": diagnostic_info,
         "timestamp": datetime.now().isoformat()
     }
 
@@ -287,6 +326,48 @@ async def get_recent_activities(authorization: str = Header(...), limit: int = 1
     except Exception as e:
         logger.error(f"Failed to get recent activities: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get recent activities: {str(e)}")
+
+@app.post("/admin/initialize-workflow")
+async def manual_workflow_initialization():
+    """Manually initialize the workflow (admin endpoint)"""
+    global workflow
+    try:
+        logger.info("Manual workflow initialization requested...")
+        
+        # Check for required environment variables
+        openai_key = os.getenv("OPENAI_API_KEY")
+        if not openai_key:
+            return {
+                "success": False,
+                "error": "OPENAI_API_KEY environment variable is not set",
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        # Initialize workflow
+        workflow = StravaWorkflow()
+        logger.info("StravaWorkflow instance created successfully")
+        
+        # Set the global workflow instance in the analysis router
+        import routes.analysis
+        routes.analysis.workflow = workflow
+        logger.info("Workflow instance set in analysis router")
+        
+        return {
+            "success": True,
+            "message": "Workflow initialized successfully",
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Manual workflow initialization failed: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": type(e).__name__,
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.get("/chart.png")
 async def get_chart():
