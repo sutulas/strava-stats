@@ -117,7 +117,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                 WebkitTextFillColor: 'transparent',
               }}
             >
-              Strava Stats
+              Running Stats
             </Typography>
 
             {/* Main loading indicator */}

@@ -1,4 +1,4 @@
-# Strava Stats - AI-Powered Fitness Analytics Platform
+# Running Stats - AI-Powered Fitness Analytics Platform
 
 A comprehensive web application that provides intelligent analysis of Strava running data using natural language queries and AI-powered workflows. Built with modern web technologies and featuring an intuitive chat interface for data exploration.
 

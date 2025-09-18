@@ -92,7 +92,7 @@ const LoginPage: React.FC = () => {
         >
           <CardContent>
             <Stack spacing={4} alignItems="center">
-              {/* Strava Logo */}
+              {/* Strava Logo
               <Box
                 component="img"
                 src={stravaLogo}
@@ -101,24 +101,36 @@ const LoginPage: React.FC = () => {
                   height: 80,
                   width: 'auto',
                 }}
-              />
+              /> */}
 
               {/* Title */}
               <Typography
-                variant="h3"
+                variant="h1"
                 component="h1"
                 textAlign="center"
                 sx={{
-                  fontWeight: 700,
+                  fontWeight: 800,
                   background: 'linear-gradient(45deg, #ff6b35, #ff8a65)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                Strava Stats
+                Running Stats
               </Typography>
-
+               {/* Official Powered by Strava Logo */}
+               <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                <Box
+                  component="img"
+                  src="/strava-resources/1.2-Strava-API-Logos/Powered by Strava/pwrdBy_strava_white/api_logo_pwrdBy_strava_horiz_white.png"
+                  alt="Powered by Strava"
+                  sx={{
+                    height: 15,
+                    width: 'auto',
+                    opacity: 0.7,
+                  }}
+                />
+              </Box>
               {/* Subtitle */}
               <Typography
                 variant="h6"
@@ -129,36 +141,22 @@ const LoginPage: React.FC = () => {
                 Analyze your running data with AI-powered insights and beautiful visualizations
               </Typography>
 
-              {/* Built with Strava */}
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                textAlign="center"
-                sx={{ fontStyle: 'italic' }}
-              >
-                Built with Strava
-              </Typography>
-
-              {/* Login Button */}
-              <Button
-                variant="contained"
-                size="large"
+              {/* Official Connect with Strava Button */}
+              <Box
+                component="img"
+                src="/strava-resources/1.1 Connect with Strava Buttons/Connect with Strava White/btn_strava_connect_with_white.png"
+                alt="Connect with Strava"
                 onClick={handleStravaLogin}
                 sx={{
-                  backgroundColor: '#fc4c02',
-                  color: 'white',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  padding: '12px 32px',
-                  borderRadius: 2,
-                  textTransform: 'none',
+                  height: 48,
+                  width: 'auto',
+                  cursor: 'pointer',
+                  transition: 'opacity 0.2s ease',
                   '&:hover': {
-                    backgroundColor: '#e03e00',
+                    opacity: 0.8,
                   },
                 }}
-              >
-                Connect with Strava
-              </Button>
+              />
 
               {/* Features */}
               <Box sx={{ width: '100%', mt: 4 }}>
@@ -166,20 +164,21 @@ const LoginPage: React.FC = () => {
                   Features
                 </Typography>
                 <Stack spacing={1}>
-                  <Typography variant="body2" color="text.secondary">
-                    • AI-powered data analysis
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    AI-powered data analysis
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    • Interactive charts and visualizations
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    Interactive charts and visualizations
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    • Personal running insights
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    Personal running insights
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    • Export your data
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    Export your data
                   </Typography>
                 </Stack>
               </Box>
+
             </Stack>
           </CardContent>
         </Card>

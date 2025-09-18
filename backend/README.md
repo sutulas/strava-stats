@@ -1,4 +1,4 @@
-# Strava Stats Backend
+# Running Stats Backend
 
 A FastAPI backend service for analyzing Strava running data using AI-powered chat workflow.
 

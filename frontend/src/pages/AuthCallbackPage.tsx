@@ -11,7 +11,6 @@ import {
   Button,
 } from '@mui/material';
 import { authService } from '../services/authService';
-import { apiService } from '../services/apiService';
 import LoadingScreen from '../components/LoadingScreen';
 
 const AuthCallbackPage: React.FC = () => {

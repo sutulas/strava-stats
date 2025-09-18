@@ -1,4 +1,4 @@
-# Strava Stats Frontend
+# Running Stats Frontend
 
 A modern React frontend for analyzing Strava running data with AI-powered insights.
 

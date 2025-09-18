@@ -37,7 +37,7 @@ class DataRefreshResponse(BaseModel):
 
 # Create FastAPI app
 app = FastAPI(
-    title="Strava Stats API",
+    title="Running Stats API",
     description="A production-ready API for analyzing Strava running data using AI-powered chat workflow",
     version="1.0.0",
     docs_url="/docs",
@@ -138,7 +138,7 @@ async def delayed_workflow_initialization():
 async def root():
     """Health check endpoint"""
     return {
-        "message": "Strava Stats API is running",
+        "message": "Running Stats API is running",
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "version": "1.0.0"

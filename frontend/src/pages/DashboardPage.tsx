@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Alert,
   Stack,
+  Link,
 } from '@mui/material';
 import { apiService, UserStats, DataOverview } from '../services/apiService';
 
@@ -80,6 +81,21 @@ const DashboardPage: React.FC = () => {
                 Use the Analysis page to ask questions about your running performance 
                 and get AI-powered insights.
               </Typography>
+              <Box sx={{ mt: 2 }}>
+                <Link
+                  href="https://www.strava.com/dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: '#FC5200',
+                    textDecoration: 'underline',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  View on Strava
+                </Link>
+              </Box>
             </CardContent>
           </Card>
         </Grid>

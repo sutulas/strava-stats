@@ -15,6 +15,7 @@ import {
   Divider,
   Collapse,
   IconButton,
+  Link,
 } from '@mui/material';
 import { Send, Image, Refresh, ExpandMore, ExpandLess } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
@@ -219,6 +220,21 @@ const AnalysisPage: React.FC = () => {
                       />
                     )}
                   </Box>
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Link
+                    href="https://www.strava.com/athlete/training"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      color: '#FC5200',
+                      textDecoration: 'underline',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    View on Strava
+                  </Link>
                 </Box>
                 <Paper
                   sx={{

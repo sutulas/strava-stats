@@ -17,6 +17,7 @@ import {
   TableRow,
   Paper,
   Chip,
+  Link,
 } from '@mui/material';
 import { Download, Refresh } from '@mui/icons-material';
 import { apiService, DataOverview } from '../services/apiService';
@@ -152,6 +153,22 @@ const DataPage: React.FC = () => {
                     Download CSV
                   </Button>
                 </Stack>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Link
+                  href="https://www.strava.com/athlete/training"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: '#FC5200',
+                    textDecoration: 'underline',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  View on Strava
+                </Link>
               </Box>
 
               <Grid container spacing={3}>

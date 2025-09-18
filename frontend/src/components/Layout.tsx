@@ -125,7 +125,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }}
       >
         <Typography variant="h5" fontWeight={700} color="primary">
-          Strava Stats
+          Running Stats
         </Typography>
         <IconButton onClick={handleDrawerToggle} sx={{ color: 'text.secondary' }}>
           <ChevronLeft />
@@ -270,10 +270,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           minHeight: '100vh',
           transition: 'width 0.3s ease',
           overflow: 'auto',
+          position: 'relative',
         }}
       >
         <Toolbar />
         {children}
+        
+        {/* Powered by Strava Logo - Fixed at bottom right */}
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1000,
+          }}
+        >
+          <Box
+            component="img"
+            src="/strava-resources/1.2-Strava-API-Logos/Powered by Strava/pwrdBy_strava_white/api_logo_pwrdBy_strava_horiz_white.png"
+            alt="Powered by Strava"
+            sx={{
+              height: 16,
+              width: 'auto',
+              opacity: 0.6,
+            }}
+          />
+        </Box>
       </Box>
       <Menu
         anchorEl={anchorEl}

@@ -10,6 +10,7 @@ import {
   Alert,
   Stack,
   Chip,
+  Link,
 } from '@mui/material';
 import {
   LineChart,
@@ -126,6 +127,21 @@ const ProfilePage: React.FC = () => {
                     variant="outlined"
                     sx={{ mt: 1 }}
                   />
+                  <Box sx={{ mt: 2 }}>
+                    <Link
+                      href={`https://www.strava.com/athletes/${userProfile?.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        color: '#FC5200',
+                        textDecoration: 'underline',
+                        fontWeight: 'bold',
+                        fontSize: '0.9rem',
+                      }}
+                    >
+                      View on Strava
+                    </Link>
+                  </Box>
                 </Box>
               </Stack>
             </CardContent>
