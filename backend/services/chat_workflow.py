@@ -163,8 +163,7 @@ class StravaWorkflow:
             - Use seaborn and matplotlib for visualization
             - Import necessary libraries (seaborn, matplotlib.pyplot, pandas)
             - Refer to the dataset as 'df' in the code
-            - Save the chart to 'chart.png' using plt.savefig('chart.png', dpi=300, bbox_inches='tight')
-            - Clear the plot after saving using plt.clf()
+            - DO NOT save to file - just create the chart and leave it in matplotlib's current figure
             - Apply dark theme styling to match the frontend design:
               * Set figure background to black (#000000)
               * Set axes background to dark gray (#111111)
@@ -176,7 +175,7 @@ class StravaWorkflow:
             - Make the chart visually appealing with proper styling that matches a dark theme
             - Include appropriate title, labels, and legend if needed
             - Ensure all text is readable against the dark background
-            - IMPORTANT: If file saving fails due to read-only filesystem, the chart will be captured from memory automatically
+            - IMPORTANT: Do not call plt.savefig() or plt.clf() - just create the chart
 
             RETURN ONLY THE CODE OR ELSE IT WILL FAIL.
         '''
@@ -233,23 +232,12 @@ class StravaWorkflow:
             captured_output = mystdout.getvalue()
             print(f"Chart execution output: {captured_output}")
             
-            # Try to read the chart file and encode it as base64
+            # Capture the chart directly from matplotlib's current figure
             chart_data = None
             try:
-                # Check if chart.png exists and read it
-                import os
-                if os.path.exists("chart.png"):
-                    with open("chart.png", "rb") as f:
-                        chart_data = base64.b64encode(f.read()).decode('utf-8')
-                    print("Chart file found and encoded successfully")
-                else:
-                    print("Chart file not found")
-            except Exception as e:
-                print(f"Error reading chart file: {e}")
-                # If file system is read-only, try to get the chart from matplotlib's current figure
-                try:
-                    # Get the current figure and save to bytes
-                    fig = plt.gcf()
+                # Get the current figure and save to bytes
+                fig = plt.gcf()
+                if fig.get_axes():  # Check if there are any axes (charts) in the figure
                     buf = io.BytesIO()
                     fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
                     buf.seek(0)
@@ -257,8 +245,10 @@ class StravaWorkflow:
                     buf.close()
                     plt.clf()  # Clear the figure
                     print("Chart generated in memory and encoded successfully")
-                except Exception as mem_error:
-                    print(f"Error generating chart in memory: {mem_error}")
+                else:
+                    print("No chart found in matplotlib figure")
+            except Exception as e:
+                print(f"Error generating chart in memory: {e}")
             
             # Set chart output based on success
             if chart_data:
@@ -393,10 +383,10 @@ class StravaWorkflow:
             - Use seaborn and matplotlib for visualization
             - Import necessary libraries (seaborn, matplotlib.pyplot, pandas)
             - Refer to the dataset as 'df' in the code
-            - Save the chart to 'chart.png' using plt.savefig('chart.png', dpi=300, bbox_inches='tight')
-            - Clear the plot after saving using plt.clf()
+            - DO NOT save to file - just create the chart and leave it in matplotlib's current figure
             - Make the chart visually appealing with proper styling
             - Include appropriate title, labels, and legend if needed
+            - IMPORTANT: Do not call plt.savefig() or plt.clf() - just create the chart
 
             RETURN ONLY THE CODE OR ELSE IT WILL FAIL.
             '''
