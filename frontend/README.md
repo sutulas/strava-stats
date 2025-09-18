@@ -57,7 +57,7 @@ A modern React frontend for analyzing Strava running data with AI-powered insigh
 
 ## Design System
 
-- **Colors**: Black background (#000000), white text (#ffffff), orange accents (#ff6b35)
+- **Colors**: Black background (#000000), white text (#ffffff), orange accents (#FC5200)
 - **Typography**: Inter/Roboto/Poppins font family
 - **Layout**: Sidebar navigation with main content area
 - **Components**: Cards, buttons, and forms with consistent styling

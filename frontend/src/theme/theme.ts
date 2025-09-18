@@ -4,7 +4,7 @@ export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#ff6b35', // Orange highlight color
+      main: '#FC5200', // Orange highlight color
       light: '#ff8a65',
       dark: '#e64a19',
     },

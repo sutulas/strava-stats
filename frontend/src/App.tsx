@@ -44,7 +44,7 @@ const App: React.FC = () => {
             backgroundColor: '#000000',
           }}
         >
-          <CircularProgress sx={{ color: '#ff6b35' }} />
+          <CircularProgress sx={{ color: '#FC5200' }} />
         </Box>
       </AppThemeProvider>
     );

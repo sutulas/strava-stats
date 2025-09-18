@@ -146,7 +146,7 @@ const AnalysisPage: React.FC = () => {
                     disabled={loading || !query.trim() || (rateLimitStatus?.rate_limited ?? false)}
                     startIcon={loading ? <CircularProgress size={20} /> : <Send />}
                     sx={{
-                      backgroundColor: '#ff6b35',
+                      backgroundColor: '#FC5200',
                       '&:hover': {
                         backgroundColor: '#e64a19',
                       },
@@ -201,10 +201,10 @@ const AnalysisPage: React.FC = () => {
         {/* Response Display - Prominent Position */}
         {response && (
           <Grid item xs={12}>
-            <Card sx={{ border: '2px solid #ff6b35', backgroundColor: '#0a0a0a' }}>
+            <Card sx={{ border: '2px solid #FC5200', backgroundColor: '#0a0a0a' }}>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
-                  <Typography variant="h5" gutterBottom sx={{ flexGrow: 1, color: '#ff6b35' }}>
+                  <Typography variant="h5" gutterBottom sx={{ flexGrow: 1, color: '#FC5200' }}>
                     Analysis Result
                   </Typography>
                   <Box display="flex" alignItems="center" gap={2}>
@@ -265,7 +265,7 @@ const AnalysisPage: React.FC = () => {
                         <Typography
                           variant="h4"
                           sx={{
-                            color: '#ff6b35',
+                            color: '#FC5200',
                             mb: 2,
                             mt: 3,
                           }}
@@ -277,7 +277,7 @@ const AnalysisPage: React.FC = () => {
                         <Typography
                           variant="h5"
                           sx={{
-                            color: '#ff6b35',
+                            color: '#FC5200',
                             mb: 2,
                             mt: 2,
                           }}
@@ -289,7 +289,7 @@ const AnalysisPage: React.FC = () => {
                         <Typography
                           variant="h6"
                           sx={{
-                            color: '#ff6b35',
+                            color: '#FC5200',
                             mb: 1,
                             mt: 2,
                           }}
@@ -302,7 +302,7 @@ const AnalysisPage: React.FC = () => {
                           component="span"
                           sx={{
                             fontWeight: 'bold',
-                            color: '#ff6b35',
+                            color: '#FC5200',
                           }}
                         >
                           {children}
@@ -345,7 +345,7 @@ const AnalysisPage: React.FC = () => {
                           component="code"
                           sx={{
                             backgroundColor: '#333333',
-                            color: '#ff6b35',
+                            color: '#FC5200',
                             px: 1,
                             py: 0.5,
                             borderRadius: 1,
@@ -369,7 +369,7 @@ const AnalysisPage: React.FC = () => {
                           <Typography
                             component="pre"
                             sx={{
-                              color: '#ff6b35',
+                              color: '#FC5200',
                               fontFamily: 'monospace',
                               fontSize: '0.9rem',
                               margin: 0,
@@ -392,9 +392,9 @@ const AnalysisPage: React.FC = () => {
         {/* Chart Display - Right below results */}
         {chartUrl && (
           <Grid item xs={12}>
-            <Card sx={{ border: '1px solid #ff6b35' }}>
+            <Card sx={{ border: '1px solid #FC5200' }}>
               <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ color: '#ff6b35' }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#FC5200' }}>
                   Generated Chart
                 </Typography>
                 <Box

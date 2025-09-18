@@ -83,7 +83,7 @@ const AuthCallbackPage: React.FC = () => {
         >
           <CardContent>
             <Stack spacing={3} alignItems="center">
-              <CircularProgress sx={{ color: '#ff6b35' }} />
+              <CircularProgress sx={{ color: '#FC5200' }} />
               <Typography variant="h6" textAlign="center">
                 Connecting to Strava...
               </Typography>
@@ -125,7 +125,7 @@ const AuthCallbackPage: React.FC = () => {
                 variant="contained"
                 onClick={() => navigate('/login')}
                 sx={{
-                  backgroundColor: '#ff6b35',
+                  backgroundColor: '#FC5200',
                   '&:hover': {
                     backgroundColor: '#e64a19',
                   },

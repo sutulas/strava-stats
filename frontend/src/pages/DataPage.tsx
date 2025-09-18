@@ -102,7 +102,7 @@ const DataPage: React.FC = () => {
           minHeight: '50vh',
         }}
       >
-        <CircularProgress sx={{ color: '#ff6b35' }} />
+        <CircularProgress sx={{ color: '#FC5200' }} />
       </Box>
     );
   }
@@ -144,7 +144,7 @@ const DataPage: React.FC = () => {
                     startIcon={<Download />}
                     onClick={handleDownloadData}
                     sx={{
-                      backgroundColor: '#ff6b35',
+                      backgroundColor: '#FC5200',
                       '&:hover': {
                         backgroundColor: '#e64a19',
                       },

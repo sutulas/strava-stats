@@ -124,7 +124,19 @@ class StravaWorkflow:
             query = last_message.get('content', '')
         else:
             query = getattr(last_message, 'content', str(last_message))
-        if 'chart' in query.lower():
+        ##ask llm if the query is about a chart or data analysis
+        prompt = f'''
+        You are a data analysis expert. You are given a user query. You need to determine if the query is about a chart or data analysis.
+        Assume the user is asking for data unless they specifically ask for a chart/graph/visualization of any kind.
+        User query: {query}
+        Return only the word "chart" or "data" based on the query.
+        '''
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        result = response.choices[0].message.content
+        if "chart" in result.lower():
             return "prepare_graphs"
         else:
             return "prepare_data"
@@ -156,7 +168,7 @@ class StravaWorkflow:
             - Apply dark theme styling to match the frontend design:
               * Set figure background to black (#000000)
               * Set axes background to dark gray (#111111)
-              * Use orange (#ff6b35) as the primary accent color for data visualization
+              * Use orange (#FC5200) as the primary accent color for data visualization
               * Use white (#ffffff) for text, titles, and labels
               * Use light gray (#aaaaaa) for secondary text like tick labels
               * Use dark gray (#333333) for grid lines and borders

@@ -111,7 +111,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
               textAlign="center"
               sx={{
                 fontWeight: 700,
-                background: 'linear-gradient(45deg, #ff6b35, #ff8a65)',
+                background: 'linear-gradient(45deg, #FC5200, #ff8a65)',
                 backgroundClip: 'text',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -126,7 +126,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                 size={80} 
                 thickness={4}
                 sx={{ 
-                  color: '#ff6b35',
+                  color: '#FC5200',
                   position: 'absolute',
                 }} 
               />
@@ -134,7 +134,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                 variant="h6"
                 sx={{
                   fontWeight: 600,
-                  color: '#ff6b35',
+                  color: '#FC5200',
                 }}
               >
                 {Math.round(progress)}%
@@ -151,7 +151,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                   borderRadius: 4,
                   backgroundColor: '#333333',
                   '& .MuiLinearProgress-bar': {
-                    backgroundColor: '#ff6b35',
+                    backgroundColor: '#FC5200',
                     borderRadius: 4,
                   },
                 }}
@@ -183,7 +183,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
                     variant={step.completed ? 'determinate' : 'indeterminate'}
                     value={100}
                     sx={{
-                      color: step.completed ? '#4caf50' : '#ff6b35',
+                      color: step.completed ? '#4caf50' : '#FC5200',
                     }}
                   />
                   <Typography

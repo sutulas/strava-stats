@@ -59,7 +59,7 @@ const LoginPage: React.FC = () => {
           justifyContent: 'center',
         }}
       >
-        <CircularProgress sx={{ color: '#ff6b35' }} />
+        <CircularProgress sx={{ color: '#FC5200' }} />
       </Box>
     );
   }
@@ -108,7 +108,7 @@ const LoginPage: React.FC = () => {
                 textAlign="center"
                 sx={{
                   fontWeight: 800,
-                  background: 'linear-gradient(45deg, #ff6b35, #ff8a65)',
+                  background: 'linear-gradient(45deg, #FC5200, #ff8a65)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',

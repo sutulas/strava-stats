@@ -208,7 +208,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           >
             <Avatar 
               src={userProfile?.profile} 
-              sx={{ width: 32, height: 32, backgroundColor: '#ff6b35' }}
+              sx={{ width: 32, height: 32, backgroundColor: '#FC5200' }}
             >
               {userProfile?.firstname?.[0] || 'U'}
             </Avatar>

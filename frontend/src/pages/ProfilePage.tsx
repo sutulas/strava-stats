@@ -65,7 +65,7 @@ const ProfilePage: React.FC = () => {
           minHeight: '50vh',
         }}
       >
-        <CircularProgress sx={{ color: '#ff6b35' }} />
+        <CircularProgress sx={{ color: '#FC5200' }} />
       </Box>
     );
   }
@@ -94,7 +94,7 @@ const ProfilePage: React.FC = () => {
     runs: day.runs || 0,
   })) || [];
 
-  const COLORS = ['#ff6b35', '#ff8a65', '#ffab91', '#ffccbc', '#ffe0b2'];
+  const COLORS = ['#FC5200', '#ff8a65', '#ffab91', '#ffccbc', '#ffe0b2'];
 
   // Debug logging
   console.log('Profile data:', { userStats, weeklyData, monthlyData, dayOfWeekData });
@@ -225,9 +225,9 @@ const ProfilePage: React.FC = () => {
                       <Line
                         type="monotone"
                         dataKey="miles"
-                        stroke="#ff6b35"
+                        stroke="#FC5200"
                         strokeWidth={3}
-                        dot={{ fill: '#ff6b35', strokeWidth: 2, r: 4 }}
+                        dot={{ fill: '#FC5200', strokeWidth: 2, r: 4 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -262,7 +262,7 @@ const ProfilePage: React.FC = () => {
                           color: '#ffffff',
                         }}
                       />
-                      <Bar dataKey="runs" fill="#ff6b35" />
+                      <Bar dataKey="runs" fill="#FC5200" />
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>

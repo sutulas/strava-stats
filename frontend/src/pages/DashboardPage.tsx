@@ -49,7 +49,7 @@ const DashboardPage: React.FC = () => {
           minHeight: '50vh',
         }}
       >
-        <CircularProgress sx={{ color: '#ff6b35' }} />
+        <CircularProgress sx={{ color: '#FC5200' }} />
       </Box>
     );
   }
