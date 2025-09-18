@@ -17,27 +17,17 @@ const LoginPage: React.FC = () => {
   const [showDataLoading, setShowDataLoading] = useState(false);
 
   useEffect(() => {
-    const checkAuthAndData = async () => {
+    const checkAuth = async () => {
       // Check if user is already authenticated
       if (authService.isAuthenticated()) {
-        try {
-          // Check if data needs to be loaded
-          const dataStatus = await apiService.getDataStatus();
-          if (!dataStatus.data_processed || !dataStatus.workflow_ready) {
-            setShowDataLoading(true);
-          } else {
-            window.location.href = '/dashboard';
-          }
-        } catch (error) {
-          console.error('Error checking data status:', error);
-          // If there's an error, proceed to dashboard anyway
-          window.location.href = '/dashboard';
-        }
+        // If user is already authenticated, go directly to dashboard
+        // Data loading will be handled by individual pages as needed
+        window.location.href = '/dashboard';
       }
       setIsCheckingAuth(false);
     };
 
-    checkAuthAndData();
+    checkAuth();
   }, []);
 
   const handleDataLoadingComplete = () => {

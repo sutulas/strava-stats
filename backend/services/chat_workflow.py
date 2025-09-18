@@ -120,10 +120,7 @@ class StravaWorkflow:
 
     def _analyze_query_conditional(self, state: WorkflowState) -> str:
         last_message = state["messages"][-1]
-        if isinstance(last_message, dict):
-            query = last_message.get('content', '')
-        else:
-            query = getattr(last_message, 'content', str(last_message))
+        query = state["enhanced_query"]
         ##ask llm if the query is about a chart or data analysis
         prompt = f'''
         You are a data analysis expert. You are given a user query. You need to determine if the query is about a chart or data analysis.
@@ -474,8 +471,8 @@ class StravaWorkflow:
         Respond in Markdown format.
         Return only the response, be concise and to the point not conversational.
         If an activity id is returned, include a link to the activity in the response. ex: https://www.strava.com/activities/##IDNUMBER##
-        Code output exists: {state["output"] is not None}
-        Chart output exists: {state["chart_output"] is not None}
+        Code output: {state["output"]}
+        Chart output: {state["chart_code"]}
         User query: {query}
         '''
         response = client.chat.completions.create(

@@ -28,7 +28,6 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { apiService, UserProfile } from '../services/apiService';
-import LoadingScreen from './LoadingScreen';
 
 const drawerWidth = 280;
 
@@ -41,7 +40,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [desktopOpen, setDesktopOpen] = useState(true);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isDataLoading, setIsDataLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -69,22 +67,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    const initializeApp = async () => {
+    const loadUserProfile = async () => {
       // Only try to load profile if user is authenticated
       if (!authService.isAuthenticated()) {
         return;
       }
       
       try {
-        // Check if we need to load data by checking if profile exists
+        // Load user profile for display purposes only
         const profile = await apiService.getUserProfile();
         setUserProfile(profile);
-        
-        // Check if data needs to be refreshed
-        const dataStatus = await apiService.getDataStatus();
-        if (!dataStatus.data_processed || !dataStatus.workflow_ready) {
-          setIsDataLoading(true);
-        }
       } catch (error) {
         console.error('Failed to load user profile:', error);
         // If it's an auth error, redirect to login
@@ -94,17 +86,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       }
     };
 
-    initializeApp();
+    loadUserProfile();
   }, []);
-
-  const handleDataLoadingComplete = () => {
-    setIsDataLoading(false);
-  };
-
-  // Show loading screen if data is being loaded
-  if (isDataLoading) {
-    return <LoadingScreen onComplete={handleDataLoadingComplete} />;
-  }
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
