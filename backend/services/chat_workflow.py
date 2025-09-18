@@ -253,7 +253,7 @@ class StravaWorkflow:
             # Set chart output based on success
             if chart_data:
                 state["chart_output"] = chart_data
-                print("Chart generated and encoded successfully")
+                print(f"Chart generated and encoded successfully: {chart_data}")
             else:
                 state["chart_output"] = f"Chart generation failed: {captured_output or 'No output captured'}"
                 print(f"Chart generation failed: {captured_output}")
