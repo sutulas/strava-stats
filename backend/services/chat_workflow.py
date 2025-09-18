@@ -253,7 +253,7 @@ class StravaWorkflow:
             # Set chart output based on success
             if chart_data:
                 state["chart_output"] = chart_data
-                print(f"Chart generated and encoded successfully: {chart_data}")
+                print(f"Chart generated and encoded successfully")
             else:
                 state["chart_output"] = f"Chart generation failed: {captured_output or 'No output captured'}"
                 print(f"Chart generation failed: {captured_output}")
@@ -483,7 +483,6 @@ class StravaWorkflow:
             messages=[{"role": "user", "content": prompt}]
         )
         state["response"] = response.choices[0].message.content
-        print(state )
         return state
 
     def run_workflow(self, messages: List[Any], df: pd.DataFrame) -> WorkflowState:
@@ -537,6 +536,7 @@ class StravaWorkflow:
             "query": query,
             "code_output": final_state["output"],
             "chart_generated": chart_generated,
+            "chart_output": final_state["chart_output"],
             "chart_url": f"/chart.png" if chart_generated else None,
             "response": final_state["response"],
             "status": "success"
