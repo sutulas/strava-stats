@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Header
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import pandas as pd
@@ -8,6 +8,7 @@ import logging
 import asyncio
 from datetime import datetime
 import json
+import base64
 
 from services.chat_workflow import StravaWorkflow
 from services.rate_limiting_service import rate_limiter
@@ -16,6 +17,9 @@ from langchain.schema import HumanMessage
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Global variable to store chart data for serverless environments
+current_chart_data = None
 
 # Pydantic models for request/response
 class QueryRequest(BaseModel):
@@ -132,22 +136,27 @@ async def process_query(
         )
         
         # Determine response based on workflow result
+        global current_chart_data
         if result["chart_generated"]:
             # Chart was generated - trust the workflow's decision
             response_text = result["response"] if result["response"] else "View the chart below."
             chart_generated = True
-            # Use the workflow's chart_url, but verify file exists as fallback
-            chart_url = result.get("chart_url") if os.path.exists("chart.png") else None
+            # Store the chart data globally for serverless environments
+            # The workflow should have stored base64 chart data in chart_output
+            current_chart_data = result.get("chart_output")
+            chart_url = "/chart"  # Always use the chart endpoint
         elif result["response"]:
             # Data analysis was performed
             response_text = result["response"]
             chart_generated = False
             chart_url = None
+            current_chart_data = None  # Clear any previous chart data
         else:
             # Fallback response
             response_text = "Analysis completed but no specific output was generated."
             chart_generated = False
             chart_url = None
+            current_chart_data = None  # Clear any previous chart data
         
         execution_time = (datetime.now() - start_time).total_seconds()
         
@@ -180,6 +189,21 @@ async def get_chart():
     
     Returns the chart image if it exists, otherwise returns a 404 error.
     """
+    global current_chart_data
+    
+    # First try to serve from global chart data (for serverless environments)
+    if current_chart_data and not current_chart_data.startswith("Chart generation failed"):
+        try:
+            chart_bytes = base64.b64decode(current_chart_data)
+            return Response(
+                content=chart_bytes,
+                media_type="image/png",
+                headers={"Cache-Control": "no-cache"}
+            )
+        except Exception as e:
+            logger.error(f"Error serving chart from global data: {e}")
+    
+    # Fallback to file system (for local development)
     if os.path.exists("chart.png"):
         return FileResponse(
             "chart.png", 

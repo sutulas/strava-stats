@@ -205,6 +205,9 @@ class StravaWorkflow:
             import seaborn as sns
             import matplotlib.pyplot as plt
             import pandas as pd
+            import os
+            import base64
+            import io
             
             # Execute the provided code within the current environment
             code = re.sub(r"^(\s|`)*(?i:python)?\s*", "", state["chart_code"])
@@ -216,7 +219,10 @@ class StravaWorkflow:
                 'df': state["df"],
                 'sns': sns,
                 'plt': plt,
-                'pd': pd
+                'pd': pd,
+                'os': os,
+                'base64': base64,
+                'io': io
             }
             
             exec(code, namespace)
@@ -224,14 +230,36 @@ class StravaWorkflow:
             # Restore the original standard output after code execution
             sys.stdout = old_stdout
             
-            # Return any captured output from the executed code
-            state["chart_output"] = mystdout.getvalue()
-            print(state["chart_output"])
+            # Check if chart was successfully created
+            captured_output = mystdout.getvalue()
+            print(f"Chart execution output: {captured_output}")
+            
+            # Try to read the chart file and encode it as base64 for serverless environments
+            chart_data = None
+            try:
+                if os.path.exists("chart.png"):
+                    with open("chart.png", "rb") as f:
+                        chart_data = base64.b64encode(f.read()).decode('utf-8')
+                    print("Chart file found and encoded successfully")
+                else:
+                    print("Chart file not found")
+            except Exception as e:
+                print(f"Error reading chart file: {e}")
+            
+            # Set chart output based on success
+            if chart_data:
+                state["chart_output"] = chart_data
+                print("Chart generated and encoded successfully")
+            else:
+                state["chart_output"] = f"Chart generation failed: {captured_output or 'No output captured'}"
+                print(f"Chart generation failed: {captured_output}")
+            
             return state
         except Exception as e:
             sys.stdout = old_stdout
-            print(f"Error executing chart code: {e}")
-            state["chart_output"] = repr(e)
+            error_msg = f"Error executing chart code: {e}"
+            print(error_msg)
+            state["chart_output"] = error_msg
             return state
 
     def _prepare_data(self, state: WorkflowState) -> WorkflowState:
@@ -442,8 +470,8 @@ class StravaWorkflow:
         Respond in Markdown format.
         Return only the response, be concise and to the point not conversational.
         If an activity id is returned, include a link to the activity in the response. ex: https://www.strava.com/activities/##IDNUMBER##
-        Code output: {state["output"]}
-        Chart output: {state["chart_output"]}
+        Code output exists: {state["output"] is not None}
+        Chart output exists: {state["chart_output"] is not None}
         User query: {query}
         '''
         response = client.chat.completions.create(
@@ -492,11 +520,19 @@ class StravaWorkflow:
         else:
             query = getattr(last_message, 'content', str(last_message))
             
+        # Check if chart was actually generated successfully
+        # Chart output contains base64 encoded data if successful
+        chart_generated = (
+            final_state["chart_output"] is not None and 
+            not final_state["chart_output"].startswith("Chart generation failed") and
+            not final_state["chart_output"].startswith("Error executing chart code")
+        )
+        
         return {
             "query": query,
             "code_output": final_state["output"],
-            "chart_generated": final_state["chart_output"] is not None,
-            "chart_url": f"/chart.png" if final_state["chart_output"] is not None else None,
+            "chart_generated": chart_generated,
+            "chart_url": f"/chart.png" if chart_generated else None,
             "response": final_state["response"],
             "status": "success"
         }
