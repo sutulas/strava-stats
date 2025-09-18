@@ -70,7 +70,7 @@ const AnalysisPage: React.FC = () => {
 
       setResponse(result);
 
-      if (result.chart_generated) {
+      if (result.chart_generated && result.chart_url) {
         setChartUrl(apiService.getChartUrl());
       }
 

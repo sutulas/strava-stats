@@ -133,10 +133,11 @@ async def process_query(
         
         # Determine response based on workflow result
         if result["chart_generated"]:
-            # Chart was generated
-            response_text = f"View the chart below."
+            # Chart was generated - trust the workflow's decision
+            response_text = result["response"] if result["response"] else "View the chart below."
             chart_generated = True
-            chart_url = "/chart.png" if os.path.exists("chart.png") else None
+            # Use the workflow's chart_url, but verify file exists as fallback
+            chart_url = result.get("chart_url") if os.path.exists("chart.png") else None
         elif result["response"]:
             # Data analysis was performed
             response_text = result["response"]
