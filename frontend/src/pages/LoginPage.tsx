@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Container,
@@ -12,7 +11,6 @@ import {
 import { authService } from '../services/authService';
 import { apiService } from '../services/apiService';
 import LoadingScreen from '../components/LoadingScreen';
-import stravaLogo from '../assets/strava-2.svg';
 
 const LoginPage: React.FC = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
@@ -118,7 +116,7 @@ const LoginPage: React.FC = () => {
               >
                 Running Stats
               </Typography>
-               {/* Official Powered by Strava Logo */}
+               {/* Official Powered by Strava Logo
                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
                 <Box
                   component="img"
@@ -130,7 +128,7 @@ const LoginPage: React.FC = () => {
                     opacity: 0.7,
                   }}
                 />
-              </Box>
+              </Box> */}
               {/* Subtitle */}
               <Typography
                 variant="h6"
