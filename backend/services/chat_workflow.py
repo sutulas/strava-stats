@@ -483,6 +483,7 @@ class StravaWorkflow:
             messages=[{"role": "user", "content": prompt}]
         )
         state["response"] = response.choices[0].message.content
+        print(state )
         return state
 
     def run_workflow(self, messages: List[Any], df: pd.DataFrame) -> WorkflowState:

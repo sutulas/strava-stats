@@ -138,6 +138,7 @@ async def process_query(
         
         # Determine response based on workflow result
         global current_chart_data
+        print(result)
         if result["chart_generated"]:
             # Chart was generated - trust the workflow's decision
             response_text = result["response"] if result["response"] else "View the chart below."
