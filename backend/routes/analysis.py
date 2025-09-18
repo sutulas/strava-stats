@@ -209,7 +209,6 @@ async def get_data_overview():
                 "start": df['start_date'].min() if 'start_date' in df.columns else None,
                 "end": df['start_date'].max() if 'start_date' in df.columns else None
             },
-            "activity_types": df['type'].value_counts().to_dict() if 'type' in df.columns else {},
             "columns": list(df.columns),
             "sample_data": df.head(3).to_dict('records'),
             "data_loaded_at": datetime.now().isoformat()

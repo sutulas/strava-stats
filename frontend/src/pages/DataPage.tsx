@@ -198,16 +198,6 @@ const DataPage: React.FC = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="primary">
-                      {Object.keys(dataOverview?.activity_types || {}).length}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Activity Types
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
                       {dataOverview?.data_loaded_at ? 
                         new Date(dataOverview.data_loaded_at).toLocaleDateString() : 
                         'N/A'
@@ -223,24 +213,6 @@ const DataPage: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Activity Types */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Activity Types
-              </Typography>
-              <Stack spacing={1}>
-                {dataOverview?.activity_types && Object.entries(dataOverview.activity_types).map(([type, count]) => (
-                  <Box key={type} display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="body1">{type}</Typography>
-                    <Chip label={count} size="small" />
-                  </Box>
-                ))}
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
 
         {/* Data Columns */}
         <Grid item xs={12} md={6}>

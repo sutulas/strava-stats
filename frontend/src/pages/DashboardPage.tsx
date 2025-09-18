@@ -215,14 +215,6 @@ const DashboardPage: React.FC = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <Typography variant="body2" color="text.secondary">
-                    Activity Types
-                  </Typography>
-                  <Typography variant="h5">
-                    {Object.keys(dataOverview?.activity_types || {}).length}
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="body2" color="text.secondary">
                     Last Updated
                   </Typography>
                   <Typography variant="h5">

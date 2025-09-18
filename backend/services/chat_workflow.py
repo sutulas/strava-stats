@@ -467,7 +467,6 @@ class StravaWorkflow:
             - moving_time: the time the activity took to complete in minutes
             - elapsed_time: the total time elapsed in minutes
             - total_elevation_gain: the total elevation gain of the activity in feet
-            - type: the type of activity
             - start_date_local: the date and time of the activity in the local timezone
             - average_speed: the average speed of the activity in minutes per mile
             - max_speed: the maximum speed of the activity in minutes per mile

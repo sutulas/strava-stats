@@ -64,7 +64,6 @@ export interface DataOverview {
     start: string;
     end: string;
   };
-  activity_types: { [key: string]: number };
   columns: string[];
   sample_data: any[];
   data_loaded_at: string;

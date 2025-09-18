@@ -31,7 +31,6 @@ class FormatDataService:
             'moving_time': activity['moving_time'],
             'elapsed_time': activity['elapsed_time'],
             'total_elevation_gain': activity['total_elevation_gain'],
-            'type': activity['type'],
             'start_date_local': activity['start_date_local'],
             'average_speed': activity['average_speed'],
             'max_speed': activity['max_speed'],
