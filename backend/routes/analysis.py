@@ -31,6 +31,7 @@ class QueryResponse(BaseModel):
     response: str
     chart_generated: bool
     chart_url: Optional[str] = None
+    chart_data: Optional[str] = None  # Base64 encoded chart data
     execution_time: float
     timestamp: str
     status: str
@@ -144,18 +145,21 @@ async def process_query(
             # Store the chart data globally for serverless environments
             # The workflow should have stored base64 chart data in chart_output
             current_chart_data = result.get("chart_output")
-            chart_url = "/chart"  # Always use the chart endpoint
+            chart_url = "/chart"  # Keep for backward compatibility
+            chart_data = result.get("chart_output")  # Pass base64 data directly
         elif result["response"]:
             # Data analysis was performed
             response_text = result["response"]
             chart_generated = False
             chart_url = None
+            chart_data = None
             current_chart_data = None  # Clear any previous chart data
         else:
             # Fallback response
             response_text = "Analysis completed but no specific output was generated."
             chart_generated = False
             chart_url = None
+            chart_data = None
             current_chart_data = None  # Clear any previous chart data
         
         execution_time = (datetime.now() - start_time).total_seconds()
@@ -167,6 +171,7 @@ async def process_query(
             response=response_text,
             chart_generated=chart_generated,
             chart_url=chart_url,
+            chart_data=chart_data,
             execution_time=execution_time,
             timestamp=datetime.now().isoformat(),
             status="success"

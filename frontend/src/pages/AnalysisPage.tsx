@@ -70,7 +70,11 @@ const AnalysisPage: React.FC = () => {
 
       setResponse(result);
 
-      if (result.chart_generated && result.chart_url) {
+      if (result.chart_generated && result.chart_data) {
+        // Use base64 data directly instead of URL
+        setChartUrl(`data:image/png;base64,${result.chart_data}`);
+      } else if (result.chart_generated && result.chart_url) {
+        // Fallback to URL for backward compatibility
         setChartUrl(apiService.getChartUrl());
       }
 

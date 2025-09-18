@@ -176,6 +176,7 @@ class StravaWorkflow:
             - Make the chart visually appealing with proper styling that matches a dark theme
             - Include appropriate title, labels, and legend if needed
             - Ensure all text is readable against the dark background
+            - IMPORTANT: If file saving fails due to read-only filesystem, the chart will be captured from memory automatically
 
             RETURN ONLY THE CODE OR ELSE IT WILL FAIL.
         '''
@@ -205,7 +206,6 @@ class StravaWorkflow:
             import seaborn as sns
             import matplotlib.pyplot as plt
             import pandas as pd
-            import os
             import base64
             import io
             
@@ -220,7 +220,6 @@ class StravaWorkflow:
                 'sns': sns,
                 'plt': plt,
                 'pd': pd,
-                'os': os,
                 'base64': base64,
                 'io': io
             }
@@ -234,9 +233,11 @@ class StravaWorkflow:
             captured_output = mystdout.getvalue()
             print(f"Chart execution output: {captured_output}")
             
-            # Try to read the chart file and encode it as base64 for serverless environments
+            # Try to read the chart file and encode it as base64
             chart_data = None
             try:
+                # Check if chart.png exists and read it
+                import os
                 if os.path.exists("chart.png"):
                     with open("chart.png", "rb") as f:
                         chart_data = base64.b64encode(f.read()).decode('utf-8')
@@ -245,6 +246,19 @@ class StravaWorkflow:
                     print("Chart file not found")
             except Exception as e:
                 print(f"Error reading chart file: {e}")
+                # If file system is read-only, try to get the chart from matplotlib's current figure
+                try:
+                    # Get the current figure and save to bytes
+                    fig = plt.gcf()
+                    buf = io.BytesIO()
+                    fig.savefig(buf, format='png', dpi=300, bbox_inches='tight')
+                    buf.seek(0)
+                    chart_data = base64.b64encode(buf.read()).decode('utf-8')
+                    buf.close()
+                    plt.clf()  # Clear the figure
+                    print("Chart generated in memory and encoded successfully")
+                except Exception as mem_error:
+                    print(f"Error generating chart in memory: {mem_error}")
             
             # Set chart output based on success
             if chart_data:

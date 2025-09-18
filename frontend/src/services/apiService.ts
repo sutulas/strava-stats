@@ -12,6 +12,7 @@ export interface QueryResponse {
   response: string;
   chart_generated: boolean;
   chart_url?: string;
+  chart_data?: string;  // Base64 encoded chart data
   execution_time: number;
   timestamp: string;
   status: string;
