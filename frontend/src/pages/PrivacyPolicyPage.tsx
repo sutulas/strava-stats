@@ -98,13 +98,16 @@ const PrivacyPolicyPage: React.FC = () => {
                 3. Data Storage and Retention
               </Typography>
               <Typography variant="body1" color="text.primary">
-                We implement the following data retention practices:
+                We implement the following data storage and retention practices:
               </Typography>
               <Box component="ul" sx={{ pl: 3, color: 'text.primary' }}>
-                <li>Your Strava data is cached for a maximum of 7 days as required by Strava's API agreement</li>
-                <li>Access tokens are stored temporarily and automatically expire</li>
-                <li>All cached data is automatically deleted after 7 days</li>
-                <li>You can request immediate deletion of your data at any time</li>
+                <li><strong>Primary Storage:</strong> Your processed Strava data is stored securely in Supabase (PostgreSQL database)</li>
+                <li><strong>Data Persistence:</strong> Data persists across sessions to provide faster access and better user experience</li>
+                <li><strong>Data Format:</strong> Your running activities are stored as processed, anonymized data (no personal identifiers)</li>
+                <li><strong>User Identification:</strong> Data is linked only to your Strava user ID (numeric identifier)</li>
+                <li><strong>Retention Period:</strong> Data is retained until you request deletion or revoke Strava access</li>
+                <li><strong>Automatic Cleanup:</strong> You can request immediate deletion of your data at any time</li>
+                <li><strong>Cache Management:</strong> API response caches are stored temporarily for performance optimization</li>
               </Box>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
@@ -134,20 +137,37 @@ const PrivacyPolicyPage: React.FC = () => {
               </Box>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
-                6. Data Security
+                6. Third-Party Services
+              </Typography>
+              <Typography variant="body1" color="text.primary">
+                We use the following third-party services to provide our functionality:
+              </Typography>
+              <Box component="ul" sx={{ pl: 3, color: 'text.primary' }}>
+                <li><strong>Supabase:</strong> PostgreSQL database service for secure data storage and management</li>
+                <li><strong>Strava API:</strong> For accessing your running activity data</li>
+                <li><strong>OpenAI API:</strong> For AI-powered analysis and natural language processing</li>
+              </Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                These services are GDPR-compliant and maintain high security standards. We do not share your personal data with any other third parties.
+              </Typography>
+
+              <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
+                7. Data Security
               </Typography>
               <Typography variant="body1" color="text.primary">
                 We implement appropriate security measures to protect your data:
               </Typography>
               <Box component="ul" sx={{ pl: 3, color: 'text.primary' }}>
-                <li>All data transmission is encrypted using HTTPS</li>
+                <li>All data transmission is encrypted using HTTPS/TLS</li>
+                <li>Database connections are encrypted and secured</li>
                 <li>Access tokens are handled securely and not logged</li>
+                <li>User data is isolated by user ID with proper access controls</li>
                 <li>Regular security audits and monitoring</li>
                 <li>Immediate notification of any security breaches</li>
               </Box>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
-                7. Strava Integration
+                8. Strava Integration
               </Typography>
               <Typography variant="body1" color="text.primary">
                 This application integrates with Strava and complies with Strava's API Agreement:
@@ -160,7 +180,7 @@ const PrivacyPolicyPage: React.FC = () => {
               </Box>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
-                8. Contact Information
+                9. Contact Information
               </Typography>
               <Typography variant="body1" color="text.primary">
                 If you have questions about this privacy policy or want to exercise your rights, please contact us:
@@ -172,7 +192,7 @@ const PrivacyPolicyPage: React.FC = () => {
               </Box>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
-                9. Changes to This Policy
+                10. Changes to This Policy
               </Typography>
               <Typography variant="body1" color="text.primary">
                 We may update this privacy policy from time to time.

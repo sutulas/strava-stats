@@ -247,8 +247,12 @@ async def refresh_user_data(authorization: str = Header(...)):
         processed_df = format_service.fix_data(formatted_df)
         logger.info("Data processing completed successfully")
         
+        # Get user profile to extract user_id
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
         # Store processed data using centralized data manager
-        data_manager.set_processed_data(processed_df)
+        data_manager.set_processed_data(processed_df, user_id)
         
         # Update the workflow with new data
         global workflow
@@ -349,6 +353,11 @@ async def get_user_stats(authorization: str = Header(...)):
         
         access_token = authorization.replace("Bearer ", "")
         
+        # Get user profile to extract user_id
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
         # Return cached data if available
         cached_stats = data_manager.get_cached_user_stats()
         if cached_stats is not None:
@@ -356,7 +365,7 @@ async def get_user_stats(authorization: str = Header(...)):
             return cached_stats
         
         # Get processed data from data manager
-        processed_data = data_manager.get_processed_data()
+        processed_data = data_manager.get_processed_data(user_id)
         if processed_data is None:
             raise HTTPException(status_code=404, detail="No data available. Please refresh your data first.")
         
@@ -389,8 +398,13 @@ async def get_recent_activities(authorization: str = Header(...), limit: int = 1
         
         access_token = authorization.replace("Bearer ", "")
         
+        # Get user profile to extract user_id
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
         # Get processed data from data manager
-        processed_data = data_manager.get_processed_data()
+        processed_data = data_manager.get_processed_data(user_id)
         if processed_data is None:
             raise HTTPException(status_code=404, detail="No data available. Please refresh your data first.")
         
@@ -437,7 +451,14 @@ async def delete_user_data(authorization: str = Header(...)):
         access_token = authorization.replace("Bearer ", "")
         logger.info("User data deletion requested")
         
-        # Clear all data using centralized data manager
+        # Get user profile to extract user_id for Supabase cleanup
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        logger.info(f"Deleting data for user: {user_id}")
+        
+        # Clear all data using centralized data manager (this will also clear Supabase)
         data_manager.clear_data()
         
         # Clear workflow
@@ -488,7 +509,8 @@ async def delete_user_data(authorization: str = Header(...)):
         
         # Prepare response
         response = {
-            "message": "User data deletion completed",
+            "message": "User data deletion completed (including Supabase data)",
+            "user_id": user_id,
             "deleted_files": deleted_files,
             "timestamp": datetime.now().isoformat()
         }

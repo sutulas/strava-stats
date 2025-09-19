@@ -127,8 +127,14 @@ async def process_query(
         
         logger.info(f"Processing query: {request.query}")
         
+        # Extract user_id from authorization token
+        from services.strava_data_service import StravaDataService
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
         # Use the in-memory data from data manager
-        df = data_manager.get_processed_data()
+        df = data_manager.get_processed_data(user_id)
         logger.info(f"Using data with {len(df)} rows")
         
         # Run the workflow
@@ -238,6 +244,7 @@ async def get_data_overview():
         
         check_data_file()
         
+        # For data overview, we'll use the current user from data manager
         df = data_manager.get_processed_data()
         
         overview = {

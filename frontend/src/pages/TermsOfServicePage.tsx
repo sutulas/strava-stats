@@ -123,9 +123,11 @@ const TermsOfServicePage: React.FC = () => {
               </Typography>
               <Box component="ul" sx={{ pl: 3, color: 'text.primary' }}>
                 <li>We only access your own Strava data, never other users' data</li>
-                <li>Your data is cached for a maximum of 7 days as required by Strava</li>
-                <li>You can request deletion of your data at any time</li>
-                <li>We do not share your data with third parties</li>
+                <li>Your processed data is stored securely in Supabase for improved performance</li>
+                <li>Data is retained until you request deletion or revoke Strava access</li>
+                <li>You can request immediate deletion of your data at any time</li>
+                <li>We do not share your data with third parties except as necessary for service operation</li>
+                <li>All data transmission and storage is encrypted and secured</li>
               </Box>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
@@ -169,10 +171,14 @@ const TermsOfServicePage: React.FC = () => {
               </Typography>
               <Box component="ul" sx={{ pl: 3, color: 'text.primary' }}>
                 <li><strong>Strava:</strong> For accessing your running data</li>
+                <li><strong>Supabase:</strong> For secure data storage and database management</li>
                 <li><strong>OpenAI:</strong> For AI-powered analysis capabilities</li>
               </Box>
               <Typography variant="body1" color="text.primary" sx={{ mt: 2 }}>
                 We are not responsible for the availability, accuracy, or content of these third-party services. Your use of these services is subject to their respective terms of service and privacy policies.
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                These services are GDPR-compliant and maintain high security standards for data protection.
               </Typography>
 
               <Typography variant="h6" color="primary" sx={{ fontWeight: 600 }}>
