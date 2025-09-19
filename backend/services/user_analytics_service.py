@@ -53,13 +53,11 @@ class UserAnalyticsService:
             logger.error(f"Error fetching user profile: {e}")
             raise Exception(f"Failed to fetch user profile: {str(e)}")
     
-    def get_user_stats(self, data_file_path: str = "fixed_formatted_run_data.csv") -> Dict[str, Any]:
+    def get_user_stats(self, df: pd.DataFrame = None) -> Dict[str, Any]:
         """Calculate comprehensive user statistics from processed data"""
         try:
-            if not os.path.exists(data_file_path):
-                return {"error": "Data file not found"}
-            
-            df = pd.read_csv(data_file_path)
+            if df is None:
+                return {"error": "No data provided"}
             
             if df.empty:
                 return {"error": "No data available"}
@@ -191,13 +189,11 @@ class UserAnalyticsService:
             logger.error(f"Error calculating user stats: {e}")
             return {"error": f"Failed to calculate stats: {str(e)}"}
     
-    def get_recent_activities(self, data_file_path: str = "fixed_formatted_run_data.csv", limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_activities(self, df: pd.DataFrame = None, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent running activities"""
         try:
-            if not os.path.exists(data_file_path):
+            if df is None:
                 return []
-            
-            df = pd.read_csv(data_file_path)
             
             if df.empty:
                 return []

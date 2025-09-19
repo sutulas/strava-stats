@@ -31,7 +31,8 @@ class WorkflowState(TypedDict):
 
 
 class StravaWorkflow:
-    def __init__(self):
+    def __init__(self, data_df=None):
+        self.data_df = data_df
         self.graph = self._build_workflow()
 
     def _build_workflow(self):
@@ -482,7 +483,14 @@ class StravaWorkflow:
         state["response"] = response.choices[0].message.content
         return state
 
-    def run_workflow(self, messages: List[Any], df: pd.DataFrame) -> WorkflowState:
+    def run_workflow(self, messages: List[Any], df: pd.DataFrame = None) -> WorkflowState:
+        # Use stored DataFrame if no DataFrame is provided
+        if df is None:
+            if self.data_df is not None:
+                df = self.data_df
+            else:
+                raise ValueError("No DataFrame provided and no data stored in workflow")
+        
         initial_state = WorkflowState(
             messages=messages,
             df=df,
@@ -542,15 +550,35 @@ class StravaWorkflow:
 
 
 if __name__ == "__main__":
-    #test the graph workflow with fixed_formatted_run_data.csv
+    # Test the graph workflow with sample data
     workflow = StravaWorkflow()
 
-    #load the data
-    df = pd.read_csv('fixed_formatted_run_data.csv')
+    # Create sample data for testing
+    sample_data = pd.DataFrame({
+        'id': [1, 2, 3],
+        'start_date': ['2025-01-01T10:00:00Z', '2025-01-02T10:00:00Z', '2025-01-03T10:00:00Z'],
+        'start_date_local': ['2025-01-01T10:00:00Z', '2025-01-02T10:00:00Z', '2025-01-03T10:00:00Z'],
+        'name': ['Morning Run', 'Evening Run', 'Long Run'],
+        'distance': [3.1, 5.0, 10.0],
+        'moving_time': [25, 40, 80],
+        'elapsed_time': [25, 40, 80],
+        'total_elevation_gain': [100, 200, 500],
+        'average_speed': [8.0, 8.0, 8.0],
+        'max_speed': [10.0, 10.0, 10.0],
+        'average_cadence': [85, 85, 85],
+        'average_heartrate': [150, 155, 160],
+        'max_heartrate': [170, 175, 180],
+        'suffer_score': [5, 7, 9],
+        'year': [2025, 2025, 2025],
+        'month': [1, 1, 1],
+        'day': [1, 2, 3],
+        'day_of_week': ['Wednesday', 'Thursday', 'Friday'],
+        'time': ['10:00:00', '10:00:00', '10:00:00']
+    })
     
     while True:
         #run the workflow   
         query = input("Enter a query: ")
-        result = workflow.run_workflow([HumanMessage(content=query)], df)
+        result = workflow.run_workflow([HumanMessage(content=query)], sample_data)
         
     

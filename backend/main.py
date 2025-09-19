@@ -58,6 +58,8 @@ app.include_router(analysis_router, tags=["analysis"])
 
 # Global workflow instance
 workflow = None
+processed_data = None  # Global variable to store processed DataFrame
+data_refresh_in_progress = False  # Flag to prevent multiple simultaneous refreshes
 
 async def initialize_workflow_with_retry():
     """Initialize workflow with retry mechanism"""
@@ -147,7 +149,8 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Detailed health check endpoint"""
-    data_file_exists = os.path.exists("fixed_formatted_run_data.csv")
+    global processed_data
+    data_file_exists = processed_data is not None and not processed_data.empty
     
     # Check environment variables
     openai_key_set = bool(os.getenv("OPENAI_API_KEY"))
@@ -203,7 +206,21 @@ async def exchange_token(token_request: TokenRequest):
 @app.post("/data/refresh", response_model=DataRefreshResponse)
 async def refresh_user_data(authorization: str = Header(...)):
     """Fetch fresh Strava data and update the workflow dataset"""
+    global data_refresh_in_progress
+    
+    # Check if refresh is already in progress
+    if data_refresh_in_progress:
+        logger.info("Data refresh already in progress, skipping duplicate request")
+        return DataRefreshResponse(
+            message="Data refresh already in progress",
+            activities_count=0,
+            file_path="in_memory_data",
+            timestamp=datetime.now().isoformat()
+        )
+    
     try:
+        data_refresh_in_progress = True
+        
         # Extract token from Authorization header
         if not authorization.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Invalid authorization header")
@@ -226,24 +243,23 @@ async def refresh_user_data(authorization: str = Header(...)):
         formatted_df = format_service.format_data(activities)
         logger.info(f"Formatted {len(formatted_df)} running activities")
         
-        # Save formatted data
-        formatted_file_path = "data/formatted_data.csv"
-        os.makedirs("data", exist_ok=True)
-        formatted_df.to_csv(formatted_file_path, index=False)
-        logger.info(f"Saved formatted data to {formatted_file_path}")
-        
-        # Fix and process the data
-        format_service.fix_data(formatted_file_path)
+        # Process the data in memory
+        processed_df = format_service.fix_data(formatted_df)
         logger.info("Data processing completed successfully")
+        
+        # Store processed data globally
+        global processed_data
+        processed_data = processed_df
         
         # Update the workflow with new data
         global workflow
         try:
             # Reload the workflow with new data
-            workflow = StravaWorkflow()
+            workflow = StravaWorkflow(processed_df)
             # Update the router workflow instance
             import routes.analysis
             routes.analysis.workflow = workflow
+            routes.analysis.processed_data = processed_df
             logger.info("Workflow updated with fresh data")
         except Exception as e:
             logger.error(f"Failed to update workflow: {e}")
@@ -252,35 +268,37 @@ async def refresh_user_data(authorization: str = Header(...)):
         return DataRefreshResponse(
             message="Data refreshed successfully",
             activities_count=len(activities),
-            file_path="fixed_formatted_run_data.csv",
+            file_path="in_memory_data",
             timestamp=datetime.now().isoformat()
         )
         
     except HTTPException:
         # Re-raise HTTP exceptions
+        data_refresh_in_progress = False
         raise
     except Exception as e:
         logger.error(f"Data refresh failed: {e}")
+        data_refresh_in_progress = False
         raise HTTPException(status_code=500, detail=f"Data refresh failed: {str(e)}")
+    finally:
+        data_refresh_in_progress = False
 
 @app.get("/data/status")
 async def get_data_status():
     """Get the current status of the user's data"""
     try:
-        data_file_exists = os.path.exists("fixed_formatted_run_data.csv")
-        formatted_file_exists = os.path.exists("data/formatted_data.csv")
+        global processed_data
         
-        if data_file_exists:
-            df = pd.read_csv("fixed_formatted_run_data.csv")
-            activities_count = len(df)
-            latest_activity = df['start_date_local'].max() if not df.empty else None
+        if processed_data is not None and not processed_data.empty:
+            activities_count = len(processed_data)
+            latest_activity = processed_data['start_date_local'].max() if not processed_data.empty else None
         else:
             activities_count = 0
             latest_activity = None
         
         return {
-            "data_processed": data_file_exists,
-            "formatted_data_exists": formatted_file_exists,
+            "data_processed": processed_data is not None and not processed_data.empty,
+            "formatted_data_exists": processed_data is not None and not processed_data.empty,
             "activities_count": activities_count,
             "latest_activity": latest_activity,
             "workflow_ready": workflow is not None,
@@ -334,7 +352,7 @@ async def get_user_stats(authorization: str = Header(...)):
         
         # Get user stats
         analytics_service = UserAnalyticsService()
-        stats_data = analytics_service.get_user_stats()
+        stats_data = analytics_service.get_user_stats(processed_data)
         
         if "error" in stats_data:
             raise HTTPException(status_code=404, detail=stats_data["error"])
@@ -359,7 +377,7 @@ async def get_recent_activities(authorization: str = Header(...), limit: int = 1
         
         # Get recent activities
         analytics_service = UserAnalyticsService()
-        activities = analytics_service.get_recent_activities(limit=limit)
+        activities = analytics_service.get_recent_activities(processed_data, limit=limit)
         
         return {"activities": activities}
         
@@ -400,10 +418,13 @@ async def delete_user_data(authorization: str = Header(...)):
         access_token = authorization.replace("Bearer ", "")
         logger.info("User data deletion requested")
         
-        # List of files to delete
+        # Clear in-memory data
+        global processed_data
+        processed_data = None
+        
+        # List of files to delete (if they exist)
         files_to_delete = [
             "data/formatted_data.csv",
-            "fixed_formatted_run_data.csv",
             "chart.png"
         ]
         

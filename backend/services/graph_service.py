@@ -380,11 +380,34 @@ class GraphService:
 if __name__ == "__main__":
     print("Graphing data...")
     graph_service = GraphService()
-    df = pd.read_csv('fixed_formatted_run_data.csv')
-    fig = graph_service.graph_data(df)
+    
+    # Create sample data for testing
+    sample_data = pd.DataFrame({
+        'id': [1, 2, 3, 4, 5],
+        'start_date': ['2025-01-01T10:00:00Z', '2025-01-02T10:00:00Z', '2025-01-03T10:00:00Z', '2025-01-04T10:00:00Z', '2025-01-05T10:00:00Z'],
+        'start_date_local': ['2025-01-01T10:00:00Z', '2025-01-02T10:00:00Z', '2025-01-03T10:00:00Z', '2025-01-04T10:00:00Z', '2025-01-05T10:00:00Z'],
+        'name': ['Morning Run', 'Evening Run', 'Long Run', 'Speed Work', 'Easy Run'],
+        'distance': [3.1, 5.0, 10.0, 2.0, 4.0],
+        'moving_time': [25, 40, 80, 15, 35],
+        'elapsed_time': [25, 40, 80, 15, 35],
+        'total_elevation_gain': [100, 200, 500, 50, 150],
+        'average_speed': [8.0, 8.0, 8.0, 7.5, 8.75],
+        'max_speed': [10.0, 10.0, 10.0, 9.0, 11.0],
+        'average_cadence': [85, 85, 85, 90, 80],
+        'average_heartrate': [150, 155, 160, 170, 145],
+        'max_heartrate': [170, 175, 180, 185, 165],
+        'suffer_score': [5, 7, 9, 8, 4],
+        'year': [2025, 2025, 2025, 2025, 2025],
+        'month': [1, 1, 1, 1, 1],
+        'day': [1, 2, 3, 4, 5],
+        'day_of_week': ['Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        'time': ['10:00:00', '10:00:00', '10:00:00', '10:00:00', '10:00:00']
+    })
+    
+    fig = graph_service.graph_data(sample_data)
     graph_service.save_graph(fig, 'running_analysis.png')
     print("Graph saved to: running_analysis.png")
-    graphs = graph_service.create_individual_graphs(df)
+    graphs = graph_service.create_individual_graphs(sample_data)
     for key, value in graphs.items():
         graph_service.save_graph(value, f"{key}.png")
         print(f"Graph saved to: {key}.png")

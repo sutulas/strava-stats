@@ -47,9 +47,17 @@ class FormatDataService:
         df = pd.DataFrame(activities)
         return df
     
-    def fix_data(self, file_name):
-        #load the data
-        df = pd.read_csv(file_name)
+    def fix_data(self, df):
+        """
+        Process and fix the data in a DataFrame.
+        Args:
+            df: pandas DataFrame containing the raw activity data
+        Returns:
+            pandas DataFrame: Processed and fixed data
+        """
+        # Make a copy to avoid modifying the original
+        df = df.copy()
+        
         #fix the data
         df['start_date'] = pd.to_datetime(df['start_date'])
         df['start_date_local'] = pd.to_datetime(df['start_date_local'])
@@ -81,23 +89,18 @@ class FormatDataService:
         #fill remaining empty values with 0 (for non-speed columns)
         df = df.fillna(0)
 
-        #save the data
-        df.to_csv(f"fixed_formatted_run_data.csv", index=False)
+        return df
     
     def load_data(self, file_name):
         pass
 
 if __name__ == "__main__":
-    # sample_data = [{'resource_state': 2, 'athlete': {'id': 31849701, 'resource_state': 1}, 'name': 'Afternoon Run', 'distance': 4839.1, 'moving_time': 1347, 'elapsed_time': 1347, 'total_elevation_gain': 40.1, 'type': 'Run', 'sport_type': 'Run', 'workout_type': None, 'id': 15225395752, 'start_date': '2025-07-24T20:57:09Z', 'start_date_local': '2025-07-24T16:57:09Z', 'timezone': '(GMT-05:00) America/New_York', 'utc_offset': -14400.0, 'location_city': None, 'location_state': None, 'location_country': None, 'achievement_count': 0, 'kudos_count': 9, 'comment_count': 0, 'athlete_count': 1, 'photo_count': 0, 'map': {'id': 'a15225395752', 'summary_polyline': '}qj_GdodrLDMGSYi@g@oAQW_@cA[c@SJg@PiAp@_A`AKF]ZmApAYNg@`AG`@Nf@Vd@X\\N`@Vh@PAZa@~@{@LGTB^b@r@jBJd@r@zA`A|BDVQZYb@e@d@[d@wAl@_@ZK@IEOQ[i@c@mAYm@EYf@g@VQ`@[rAwAv@g@D?THDD^b@HNRh@x@jB`@tAbArCt@zCDn@DrBE|@?fAN~A?XGj@IzB?r@DRB@d@Ap@Kd@YjAeAf@Sd@e@h@QHD^XNn@Zb@FAh@{@tAgA`DyBn@g@fCgBhBiAvC{B~AeAvEoDvMaJRWNe@Hs@LiBHq@LcCCk@yCe@y@Mq@EmAWeBm@iAk@mBiAsA}@}@a@WSk@]gB{@c@[o@aAy@uBY_BW_A[mBQm@CGSGm@x@a@n@k@h@_AhAu@h@Yh@a@ZOBuA|@sBx@SDe@XiBx@uAv@aA\\iClAcAh@KLH^', 'resource_state': 2}, 'trainer': False, 'commute': False, 'manual': False, 'private': False, 'visibility': 'everyone', 'flagged': False, 'gear_id': 'g19751693', 'start_latlng': [42.0, -71.3], 'end_latlng': [42.0, -71.3], 'average_speed': 3.593, 'max_speed': 4.825, 'average_cadence': 82.9, 'has_heartrate': True, 'average_heartrate': 150.1, 'max_heartrate': 172.0, 'heartrate_opt_out': False, 'display_hide_heartrate_option': True, 'elev_high': 93.7, 'elev_low': 53.0, 'upload_id': 16259326684, 'upload_id_str': '16259326684', 'external_id': 'garmin_ping_462453659188', 'from_accepted_tag': False, 'pr_count': 0, 'total_photo_count': 0, 'has_kudoed': False, 'suffer_score': 10.0}, 
-    #                {'resource_state': 2, 'athlete': {'id': 31849701, 'resource_state': 1}, 'name': 'Afternoon Run', 'distance': 4839.1, 'moving_time': 1347, 'elapsed_time': 1347, 'total_elevation_gain': 40.1, 'type': 'Run', 'sport_type': 'Run', 'workout_type': None, 'id': 15225395752, 'start_date': '2025-07-24T20:57:09Z', 'start_date_local': '2025-07-24T16:57:09Z', 'timezone': '(GMT-05:00) America/New_York', 'utc_offset': -14400.0, 'location_city': None, 'location_state': None, 'location_country': None, 'achievement_count': 0, 'kudos_count': 9, 'comment_count': 0, 'athlete_count': 1, 'photo_count': 0, 'map': {'id': 'a15225395752', 'summary_polyline': '}qj_GdodrLDMGSYi@g@oAQW_@cA[c@SJg@PiAp@_A`AKF]ZmApAYNg@`AG`@Nf@Vd@X\\N`@Vh@PAZa@~@{@LGTB^b@r@jBJd@r@zA`A|BDVQZYb@e@d@[d@wAl@_@ZK@IEOQ[i@c@mAYm@EYf@g@VQ`@[rAwAv@g@D?THDD^b@HNRh@x@jB`@tAbArCt@zCDn@DrBE|@?fAN~A?XGj@IzB?r@DRB@d@Ap@Kd@YjAeAf@Sd@e@h@QHD^XNn@Zb@FAh@{@tAgA`DyBn@g@fCgBhBiAvC{B~AeAvEoDvMaJRWNe@Hs@LiBHq@LcCCk@yCe@y@Mq@EmAWeBm@iAk@mBiAsA}@}@a@WSk@]gB{@c@[o@aAy@uBY_BW_A[mBQm@CGSGm@x@a@n@k@h@_AhAu@h@Yh@a@ZOBuA|@sBx@SDe@XiBx@uAv@aA\\iClAcAh@KLH^', 'resource_state': 2}, 'trainer': False, 'commute': False, 'manual': False, 'private': False, 'visibility': 'everyone', 'flagged': False, 'gear_id': 'g19751693', 'start_latlng': [42.0, -71.3], 'end_latlng': [42.0, -71.3], 'average_speed': 3.593, 'max_speed': 4.825, 'average_cadence': 82.9, 'has_heartrate': True, 'average_heartrate': 150.1, 'max_heartrate': 172.0, 'heartrate_opt_out': False, 'display_hide_heartrate_option': True, 'elev_high': 93.7, 'elev_low': 53.0, 'upload_id': 16259326684, 'upload_id_str': '16259326684', 'external_id': 'garmin_ping_462453659188', 'from_accepted_tag': False, 'pr_count': 0, 'total_photo_count': 0, 'has_kudoed': False, 'suffer_score': 10.0}
-    #             ]
-    # format_data_service = FormatDataService()
-    # formatted_data = format_data_service.format_data(sample_data)
-    # formatted_data.to_csv('formatted_data.csv', index=False)
-    # print(formatted_data)
+    # Example usage with sample data
+    sample_data = [{'resource_state': 2, 'athlete': {'id': 31849701, 'resource_state': 1}, 'name': 'Afternoon Run', 'distance': 4839.1, 'moving_time': 1347, 'elapsed_time': 1347, 'total_elevation_gain': 40.1, 'type': 'Run', 'sport_type': 'Run', 'workout_type': None, 'id': 15225395752, 'start_date': '2025-07-24T20:57:09Z', 'start_date_local': '2025-07-24T16:57:09Z', 'timezone': '(GMT-05:00) America/New_York', 'utc_offset': -14400.0, 'location_city': None, 'location_state': None, 'location_country': None, 'achievement_count': 0, 'kudos_count': 9, 'comment_count': 0, 'athlete_count': 1, 'photo_count': 0, 'map': {'id': 'a15225395752', 'summary_polyline': '}qj_GdodrLDMGSYi@g@oAQW_@cA[c@SJg@PiAp@_A`AKF]ZmApAYNg@`AG`@Nf@Vd@X\\N`@Vh@PAZa@~@{@LGTB^b@r@jBJd@r@zA`A|BDVQZYb@e@d@[d@wAl@_@ZK@IEOQ[i@c@mAYm@EYf@g@VQ`@[rAwAv@g@D?THDD^b@HNRh@x@jB`@tAbArCt@zCDn@DrBE|@?fAN~A?XGj@IzB?r@DRB@d@Ap@Kd@YjAeAf@Sd@e@h@QHD^XNn@Zb@FAh@{@tAgA`DyBn@g@fCgBhBiAvC{B~AeAvEoDvMaJRWNe@Hs@LiBHq@LcCCk@yCe@y@Mq@EmAWeBm@iAk@mBiAsA}@}@a@WSk@]gB{@c@[o@aAy@uBY_BW_A[mBQm@CGSGm@x@a@n@k@h@_AhAu@h@Yh@a@ZOBuA|@sBx@SDe@XiBx@uAv@aA\\iClAcAh@KLH^', 'resource_state': 2}, 'trainer': False, 'commute': False, 'manual': False, 'private': False, 'visibility': 'everyone', 'flagged': False, 'gear_id': 'g19751693', 'start_latlng': [42.0, -71.3], 'end_latlng': [42.0, -71.3], 'average_speed': 3.593, 'max_speed': 4.825, 'average_cadence': 82.9, 'has_heartrate': True, 'average_heartrate': 150.1, 'max_heartrate': 172.0, 'heartrate_opt_out': False, 'display_hide_heartrate_option': True, 'elev_high': 93.7, 'elev_low': 53.0, 'upload_id': 16259326684, 'upload_id_str': '16259326684', 'external_id': 'garmin_ping_462453659188', 'from_accepted_tag': False, 'pr_count': 0, 'total_photo_count': 0, 'has_kudoed': False, 'suffer_score': 10.0}]
+    
     format_data_service = FormatDataService()
-    # sample_data = pd.read_csv('C:/Users/sutul/OneDrive/Desktop/strava-stats/backend/data/formatted_data.csv')
-    fortmatted_data = format_data_service.fix_data('C:/Users/sutul/OneDrive/Desktop/strava-stats/backend/data/formatted_data.csv')
-    # fortmatted_data.to_csv('C:/Users/sutul/OneDrive/Desktop/strava-stats/backend/data/fixed_formatted_data.csv', index=False)
-    # format_data_service.fix_data('C:/Users/sutul/OneDrive/Desktop/strava-stats/backend/data/formatted_data.csv')
+    formatted_data = format_data_service.format_data(sample_data)
+    processed_data = format_data_service.fix_data(formatted_data)
+    print("Sample processed data:")
+    print(processed_data.head())
     

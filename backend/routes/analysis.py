@@ -50,6 +50,7 @@ class RateLimitResponse(BaseModel):
 
 # Global workflow instance (will be set by main.py)
 workflow: Optional[StravaWorkflow] = None
+processed_data: Optional[pd.DataFrame] = None  # Global variable to store processed DataFrame
 
 def get_workflow() -> StravaWorkflow:
     """Dependency to get the workflow instance, auto-initializing if needed"""
@@ -82,11 +83,12 @@ def get_workflow() -> StravaWorkflow:
     return workflow
 
 def check_data_file():
-    """Check if the required data file exists"""
-    if not os.path.exists("fixed_formatted_run_data.csv"):
+    """Check if the required data is available in memory"""
+    global processed_data
+    if processed_data is None or processed_data.empty:
         raise HTTPException(
             status_code=404, 
-            detail="Data file 'fixed_formatted_run_data.csv' not found. Please ensure the data file is available."
+            detail="No data available. Please refresh your data first."
         )
 
 @router.post("/query", response_model=QueryResponse)
@@ -121,14 +123,15 @@ async def process_query(
                 detail=f"Rate limit exceeded. You have used all {rate_limiter.max_queries} queries for this session."
             )
         
-        # Check if data file exists
+        # Check if data is available
         check_data_file()
         
         logger.info(f"Processing query: {request.query}")
         
-        # Load the data
-        df = pd.read_csv("fixed_formatted_run_data.csv")
-        logger.info(f"Loaded data with {len(df)} rows")
+        # Use the in-memory data
+        global processed_data
+        df = processed_data
+        logger.info(f"Using data with {len(df)} rows")
         
         # Run the workflow
         result = workflow_instance.run_workflow(
@@ -231,7 +234,8 @@ async def get_data_overview():
     try:
         check_data_file()
         
-        df = pd.read_csv("fixed_formatted_run_data.csv")
+        global processed_data
+        df = processed_data
         
         overview = {
             "total_activities": len(df),

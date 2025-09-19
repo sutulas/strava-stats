@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Box,
   Card,
@@ -28,10 +28,18 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     { id: 'stats', label: 'Calculating statistics...', completed: false },
     { id: 'overview', label: 'Preparing data overview...', completed: false },
   ]);
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasLoaded.current) {
+      return;
+    }
+    
     const loadAllData = async () => {
       try {
+        hasLoaded.current = true;
+        
         // Step 1: Load user profile
         setCurrentStep(0);
         await apiService.getUserProfile();
@@ -76,7 +84,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
     };
 
     loadAllData();
-  }, [onComplete]);
+  }, []); // Remove onComplete from dependencies to prevent multiple calls
 
   const completedSteps = steps.filter(step => step.completed).length;
   const progress = (completedSteps / steps.length) * 100;
