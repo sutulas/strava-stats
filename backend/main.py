@@ -17,6 +17,7 @@ from services.strava_auth_service import StravaAuthService
 from services.strava_data_service import StravaDataService
 from services.format_data_service import FormatDataService
 from services.user_analytics_service import UserAnalyticsService
+from services.data_manager import data_manager
 
 # Configure logging
 logging.basicConfig(
@@ -58,7 +59,6 @@ app.include_router(analysis_router, tags=["analysis"])
 
 # Global workflow instance
 workflow = None
-processed_data = None  # Global variable to store processed DataFrame
 data_refresh_in_progress = False  # Flag to prevent multiple simultaneous refreshes
 
 async def initialize_workflow_with_retry():
@@ -149,8 +149,8 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Detailed health check endpoint"""
-    global processed_data
-    data_file_exists = processed_data is not None and not processed_data.empty
+    data_info = data_manager.get_data_info()
+    data_file_exists = data_info["has_data"]
     
     # Check environment variables
     openai_key_set = bool(os.getenv("OPENAI_API_KEY"))
@@ -247,9 +247,8 @@ async def refresh_user_data(authorization: str = Header(...)):
         processed_df = format_service.fix_data(formatted_df)
         logger.info("Data processing completed successfully")
         
-        # Store processed data globally
-        global processed_data
-        processed_data = processed_df
+        # Store processed data using centralized data manager
+        data_manager.set_processed_data(processed_df)
         
         # Update the workflow with new data
         global workflow
@@ -259,7 +258,6 @@ async def refresh_user_data(authorization: str = Header(...)):
             # Update the router workflow instance
             import routes.analysis
             routes.analysis.workflow = workflow
-            routes.analysis.processed_data = processed_df
             logger.info("Workflow updated with fresh data")
         except Exception as e:
             logger.error(f"Failed to update workflow: {e}")
@@ -287,21 +285,22 @@ async def refresh_user_data(authorization: str = Header(...)):
 async def get_data_status():
     """Get the current status of the user's data"""
     try:
-        global processed_data
+        data_info = data_manager.get_data_info()
         
-        if processed_data is not None and not processed_data.empty:
-            activities_count = len(processed_data)
-            latest_activity = processed_data['start_date_local'].max() if not processed_data.empty else None
+        if data_info["has_data"]:
+            activities_count = data_info["data_rows"]
+            latest_activity = None  # We could add this to the data manager if needed
         else:
             activities_count = 0
             latest_activity = None
         
         return {
-            "data_processed": processed_data is not None and not processed_data.empty,
-            "formatted_data_exists": processed_data is not None and not processed_data.empty,
+            "data_processed": data_info["has_data"],
+            "formatted_data_exists": data_info["has_data"],
             "activities_count": activities_count,
             "latest_activity": latest_activity,
             "workflow_ready": workflow is not None,
+            "data_loaded_at": data_info["data_loaded_at"],
             "timestamp": datetime.now().isoformat()
         }
         
@@ -350,12 +349,27 @@ async def get_user_stats(authorization: str = Header(...)):
         
         access_token = authorization.replace("Bearer ", "")
         
+        # Return cached data if available
+        cached_stats = data_manager.get_cached_user_stats()
+        if cached_stats is not None:
+            logger.info("Returning cached user stats")
+            return cached_stats
+        
+        # Get processed data from data manager
+        processed_data = data_manager.get_processed_data()
+        if processed_data is None:
+            raise HTTPException(status_code=404, detail="No data available. Please refresh your data first.")
+        
         # Get user stats
         analytics_service = UserAnalyticsService()
         stats_data = analytics_service.get_user_stats(processed_data)
         
         if "error" in stats_data:
             raise HTTPException(status_code=404, detail=stats_data["error"])
+        
+        # Cache the results
+        data_manager.set_cached_user_stats(stats_data)
+        logger.info("Cached user stats for future requests")
         
         return stats_data
         
@@ -374,6 +388,11 @@ async def get_recent_activities(authorization: str = Header(...), limit: int = 1
             raise HTTPException(status_code=401, detail="Invalid authorization header")
         
         access_token = authorization.replace("Bearer ", "")
+        
+        # Get processed data from data manager
+        processed_data = data_manager.get_processed_data()
+        if processed_data is None:
+            raise HTTPException(status_code=404, detail="No data available. Please refresh your data first.")
         
         # Get recent activities
         analytics_service = UserAnalyticsService()
@@ -418,9 +437,12 @@ async def delete_user_data(authorization: str = Header(...)):
         access_token = authorization.replace("Bearer ", "")
         logger.info("User data deletion requested")
         
-        # Clear in-memory data
-        global processed_data
-        processed_data = None
+        # Clear all data using centralized data manager
+        data_manager.clear_data()
+        
+        # Clear workflow
+        global workflow
+        workflow = None
         
         # List of files to delete (if they exist)
         files_to_delete = [
@@ -455,7 +477,6 @@ async def delete_user_data(authorization: str = Header(...)):
             logger.error(error_msg)
         
         # Reset workflow to clear any cached data
-        global workflow
         if workflow:
             try:
                 workflow = None

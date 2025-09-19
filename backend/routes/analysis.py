@@ -12,6 +12,7 @@ import base64
 
 from services.chat_workflow import StravaWorkflow
 from services.rate_limiting_service import rate_limiter
+from services.data_manager import data_manager
 from langchain.schema import HumanMessage
 
 logger = logging.getLogger(__name__)
@@ -50,7 +51,6 @@ class RateLimitResponse(BaseModel):
 
 # Global workflow instance (will be set by main.py)
 workflow: Optional[StravaWorkflow] = None
-processed_data: Optional[pd.DataFrame] = None  # Global variable to store processed DataFrame
 
 def get_workflow() -> StravaWorkflow:
     """Dependency to get the workflow instance, auto-initializing if needed"""
@@ -84,8 +84,7 @@ def get_workflow() -> StravaWorkflow:
 
 def check_data_file():
     """Check if the required data is available in memory"""
-    global processed_data
-    if processed_data is None or processed_data.empty:
+    if not data_manager.has_data():
         raise HTTPException(
             status_code=404, 
             detail="No data available. Please refresh your data first."
@@ -128,9 +127,8 @@ async def process_query(
         
         logger.info(f"Processing query: {request.query}")
         
-        # Use the in-memory data
-        global processed_data
-        df = processed_data
+        # Use the in-memory data from data manager
+        df = data_manager.get_processed_data()
         logger.info(f"Using data with {len(df)} rows")
         
         # Run the workflow
@@ -232,10 +230,15 @@ async def get_data_overview():
     Returns basic statistics and information about the loaded dataset.
     """
     try:
+        # Return cached data if available
+        cached_overview = data_manager.get_cached_data_overview()
+        if cached_overview is not None:
+            logger.info("Returning cached data overview")
+            return cached_overview
+        
         check_data_file()
         
-        global processed_data
-        df = processed_data
+        df = data_manager.get_processed_data()
         
         overview = {
             "total_activities": len(df),
@@ -247,6 +250,10 @@ async def get_data_overview():
             "sample_data": df.head(3).to_dict('records'),
             "data_loaded_at": datetime.now().isoformat()
         }
+        
+        # Cache the results
+        data_manager.set_cached_data_overview(overview)
+        logger.info("Cached data overview for future requests")
         
         return overview
         
