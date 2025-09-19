@@ -15,7 +15,10 @@
   "functions": {
     "main.py": {
       "maxDuration": 30
+    },
+  
+    "api/**": {
+        "excludeFiles": "{README.md,SUPABASE_SETUP.md,BACKEND_DOCUMENTATION.md,rate-limiting-rules.md,*.md,venv,__pycache__,**/__pycache__,old_services,htmlcov,activities.json,chart.html,Dockerfile,.dockerignore,test_*.py,**/test_*.py,*.test.py,**/*.test.py,.gitignore,.env.local,.env.development,.env.test,*.log,*.tmp,*.temp,coverage,.coverage,pytest.ini,pyproject.toml,setup.py,setup.cfg,tox.ini,.pytest_cache,.mypy_cache,.ruff_cache}/**"
     }
-  },
-  "excludeFiles": "{README.md,SUPABASE_SETUP.md,BACKEND_DOCUMENTATION.md,rate-limiting-rules.md,*.md,venv,__pycache__,**/__pycache__,old_services,htmlcov,activities.json,chart.html,Dockerfile,.dockerignore,test_*.py,**/test_*.py,*.test.py,**/*.test.py,.gitignore,.env.local,.env.development,.env.test,*.log,*.tmp,*.temp,coverage,.coverage,pytest.ini,pyproject.toml,setup.py,setup.cfg,tox.ini,.pytest_cache,.mypy_cache,.ruff_cache}/**"
+  }
 }
