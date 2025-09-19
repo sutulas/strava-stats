@@ -9,6 +9,8 @@ import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AnalysisPage from './pages/AnalysisPage';
 import DataPage from './pages/DataPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
 import { CircularProgress, Box } from '@mui/material';
 
 const App: React.FC = () => {
@@ -67,6 +69,10 @@ const App: React.FC = () => {
               isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthCallbackPage />
             }
           />
+
+          {/* Public pages */}
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
 
           {/* Protected routes */}
           <Route

@@ -9,12 +9,11 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { authService } from '../services/authService';
-import { apiService } from '../services/apiService';
 import LoadingScreen from '../components/LoadingScreen';
 
 const LoginPage: React.FC = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [showDataLoading, setShowDataLoading] = useState(false);
+  const [showDataLoading] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {

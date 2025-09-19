@@ -389,6 +389,80 @@ async def manual_workflow_initialization():
             "timestamp": datetime.now().isoformat()
         }
 
+@app.delete("/data/delete")
+async def delete_user_data(authorization: str = Header(...)):
+    """Delete all user data and revoke Strava access"""
+    try:
+        # Extract token from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        
+        access_token = authorization.replace("Bearer ", "")
+        logger.info("User data deletion requested")
+        
+        # List of files to delete
+        files_to_delete = [
+            "data/formatted_data.csv",
+            "fixed_formatted_run_data.csv",
+            "chart.png"
+        ]
+        
+        deleted_files = []
+        errors = []
+        
+        # Delete data files
+        for file_path in files_to_delete:
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    deleted_files.append(file_path)
+                    logger.info(f"Deleted file: {file_path}")
+            except Exception as e:
+                error_msg = f"Failed to delete {file_path}: {str(e)}"
+                errors.append(error_msg)
+                logger.error(error_msg)
+        
+        # Clean up data directory if empty
+        try:
+            if os.path.exists("data") and not os.listdir("data"):
+                os.rmdir("data")
+                deleted_files.append("data/")
+                logger.info("Removed empty data directory")
+        except Exception as e:
+            error_msg = f"Failed to remove data directory: {str(e)}"
+            errors.append(error_msg)
+            logger.error(error_msg)
+        
+        # Reset workflow to clear any cached data
+        global workflow
+        if workflow:
+            try:
+                workflow = None
+                logger.info("Workflow instance cleared")
+            except Exception as e:
+                error_msg = f"Failed to clear workflow: {str(e)}"
+                errors.append(error_msg)
+                logger.error(error_msg)
+        
+        # Prepare response
+        response = {
+            "message": "User data deletion completed",
+            "deleted_files": deleted_files,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        if errors:
+            response["warnings"] = errors
+        
+        logger.info(f"Data deletion completed. Files deleted: {len(deleted_files)}")
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to delete user data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete user data: {str(e)}")
+
 @app.get("/chart.png")
 async def get_chart():
     """Serve the generated chart image"""

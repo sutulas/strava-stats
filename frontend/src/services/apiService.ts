@@ -190,6 +190,14 @@ class ApiService {
     });
     return response.data;
   }
+
+  // Delete user data
+  async deleteUserData(): Promise<{ message: string; deleted_files: string[]; timestamp: string; warnings?: string[] }> {
+    const response = await axios.delete(`${API_BASE_URL}/data/delete`, {
+      headers: this.getAuthHeaders(),
+    });
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();

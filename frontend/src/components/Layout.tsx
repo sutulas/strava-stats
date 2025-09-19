@@ -16,6 +16,7 @@ import {
   MenuItem,
   Divider,
 } from '@mui/material';
+import { Link } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard,
@@ -24,6 +25,8 @@ import {
   TableChart,
   Logout,
   ChevronLeft,
+  PrivacyTip,
+  Description,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
@@ -96,6 +99,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { text: 'Data', icon: <TableChart />, path: '/data' },
   ];
 
+  const legalItems = [
+    { text: 'Privacy Policy', icon: <PrivacyTip />, path: '/privacy' },
+    { text: 'Terms of Service', icon: <Description />, path: '/terms' },
+  ];
+
   const drawer = (
     <Box>
       <Box
@@ -116,6 +124,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Box>
       <List sx={{ padding: 1 }}>
         {menuItems.map((item) => (
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              selected={location.pathname === item.path}
+              onClick={() => navigate(item.path)}
+              sx={{
+                borderRadius: 2,
+                margin: '4px 8px',
+                '&.Mui-selected': {
+                  backgroundColor: '#ffffff',
+                  color: '#000000',
+                  '&:hover': {
+                    backgroundColor: '#ffffff',
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: '#000000',
+                  },
+                },
+                '&:hover': {
+                  backgroundColor: '#1a1a1a',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: 'inherit' }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          </ListItem>
+        ))}
+        
+        {/* Divider */}
+        <Divider sx={{ backgroundColor: '#333333', margin: '16px 8px' }} />
+        
+        {/* Legal Items */}
+        {legalItems.map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
@@ -258,6 +299,45 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       >
         <Toolbar />
         {children}
+        
+        {/* Footer with Privacy Policy and Terms */}
+        <Box
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            left: 16,
+            zIndex: 1000,
+            display: 'flex',
+            gap: 2,
+          }}
+        >
+          <Link
+            href="/privacy"
+            sx={{
+              color: '#666666',
+              fontSize: '0.75rem',
+              textDecoration: 'none',
+              '&:hover': {
+                color: '#FC5200',
+              },
+            }}
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/terms"
+            sx={{
+              color: '#666666',
+              fontSize: '0.75rem',
+              textDecoration: 'none',
+              '&:hover': {
+                color: '#FC5200',
+              },
+            }}
+          >
+            Terms of Service
+          </Link>
+        </Box>
         
         {/* Powered by Strava Logo - Fixed at bottom right */}
         <Box

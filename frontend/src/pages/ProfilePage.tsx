@@ -11,6 +11,12 @@ import {
   Stack,
   Chip,
   Link,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   LineChart,
@@ -27,12 +33,17 @@ import {
   Cell,
 } from 'recharts';
 import { apiService, UserProfile, UserStats } from '../services/apiService';
+import { authService } from '../services/authService';
+import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -54,6 +65,32 @@ const ProfilePage: React.FC = () => {
 
     loadProfileData();
   }, []);
+
+  const handleDeleteData = async () => {
+    try {
+      setDeleting(true);
+      const result = await apiService.deleteUserData();
+      console.log('Data deletion result:', result);
+      
+      // Clear local storage and redirect to login
+      authService.logout();
+      navigate('/login');
+    } catch (err) {
+      console.error('Error deleting data:', err);
+      setError('Failed to delete data. Please try again.');
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDeleteDialogOpen = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+  };
 
   if (loading) {
     return (
@@ -141,6 +178,23 @@ const ProfilePage: React.FC = () => {
                     >
                       View on Strava
                     </Link>
+                  </Box>
+                  <Box sx={{ mt: 3 }}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={handleDeleteDialogOpen}
+                      sx={{
+                        borderColor: '#f44336',
+                        color: '#f44336',
+                        '&:hover': {
+                          borderColor: '#d32f2f',
+                          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        },
+                      }}
+                    >
+                      Delete My Data
+                    </Button>
                   </Box>
                 </Box>
               </Stack>
@@ -319,6 +373,69 @@ const ProfilePage: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Delete Data Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteDialogClose}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#111111',
+            border: '1px solid #333333',
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: '#ffffff' }}>
+          Delete All My Data
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: '#cccccc' }}>
+            This action will permanently delete all your data from our servers, including:
+            <br />
+            • Your running activity data
+            <br />
+            • Generated charts and analysis
+            <br />
+            • All cached information
+            <br />
+            <br />
+            <strong>This action cannot be undone.</strong> You will be logged out and redirected to the login page.
+            <br />
+            <br />
+            If you want to continue using the service, you can simply log out without deleting your data.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleDeleteDialogClose}
+            disabled={deleting}
+            sx={{ color: '#FC5200' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteData}
+            disabled={deleting}
+            variant="contained"
+            color="error"
+            sx={{
+              backgroundColor: '#f44336',
+              '&:hover': {
+                backgroundColor: '#d32f2f',
+              },
+            }}
+          >
+            {deleting ? (
+              <>
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+                Deleting...
+              </>
+            ) : (
+              'Delete All Data'
+            )}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
