@@ -18,7 +18,7 @@
     },
   
     "api/**": {
-        "excludeFiles": "{*.md,venv,__pycache__,**/__pycache__,old_services,htmlcov,test_*.py,**/test_*.py,*.test.py,**/*.test.py,.env*,*.log,*.tmp,*.temp,coverage,.coverage,pytest.ini,pyproject.toml,setup.*,tox.ini,.pytest_cache,.mypy_cache,.ruff_cache,Dockerfile,.dockerignore,.gitignore}/**"
+        "excludeFiles": "{*.md,venv,__pycache__,**/__pycache__,old_services,htmlcov,test_*.py,**/test_*.py,*.test.py,**/*.test.py,*.log,*.tmp,*.temp,coverage,.coverage,setup.*,tox.ini,.pytest_cache,.mypy_cache,.ruff_cache}/**"
     }
   }
 }
