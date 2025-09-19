@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 from datetime import datetime
 import os
@@ -9,7 +8,6 @@ class GraphService:
     def __init__(self):
         # Set up the plotting style
         plt.style.use('seaborn-v0_8')
-        sns.set_palette("husl")
         
     def graph_data(self, df):
         """

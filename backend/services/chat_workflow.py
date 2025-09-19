@@ -102,7 +102,7 @@ class StravaWorkflow:
         Overview: {state["overview"]}
 
         You are a data analysis expert. You are given a user query. You need to enhance the query to be more specific and accurate.
-        You are part of a workflow where the next step will generate code to do data analysis or generate a chart using pandas or seaborn. 
+        You are part of a workflow where the next step will generate code to do data analysis or generate a chart using pandas or matplotlib. 
         The next step is {"graph_data" if "chart" in query.lower() else "analyze_data"}.
         Add specifics to the query to help the code generation (ie what the X-axis should be, what columns to use, what operations should be done, and so on...)
         
@@ -146,20 +146,20 @@ class StravaWorkflow:
         df = state["df"]
         print(f"Generating chart for query: {query}")
         prompt = f'''
-            You are a data analysis expert. You are given a dataset and a user query. You need to generate seaborn python code to create a chart for the user query.
+            You are a data analysis expert. You are given a dataset and a user query. You need to generate matplotlib python code to create a chart for the user query.
             You can use services like pandas and numpy to manipulate the data as you need. This is encouraged.
             {state["overview"]}
             
             Dataset overview (top five rows): {df.head().to_markdown()}
 
-            Given the dataset above, generate seaborn python code to create a chart for the user query: {query}.
+            Given the dataset above, generate matplotlib python code to create a chart for the user query: {query}.
 
             Be aware, there may be 0 or N/A values in the dataset (especially in the heartrate column).
             Handle these values appropriately.
 
             Requirements:
-            - Use seaborn and matplotlib for visualization
-            - Import necessary libraries (seaborn, matplotlib.pyplot, pandas)
+            - Use matplotlib for visualization
+            - Import necessary libraries (matplotlib.pyplot, pandas)
             - Refer to the dataset as 'df' in the code
             - DO NOT save to file - just create the chart and leave it in matplotlib's current figure
             - Apply dark theme styling to match the frontend design:
@@ -200,7 +200,6 @@ class StravaWorkflow:
         sys.stdout = mystdout = StringIO()
         try:
             # Import required libraries
-            import seaborn as sns
             import matplotlib.pyplot as plt
             import pandas as pd
             import base64
@@ -214,7 +213,6 @@ class StravaWorkflow:
             # Create namespace with required libraries and data
             namespace = {
                 'df': state["df"],
-                'sns': sns,
                 'plt': plt,
                 'pd': pd,
                 'base64': base64,
@@ -344,14 +342,14 @@ class StravaWorkflow:
         print("Verifying graphs")
         query = state["enhanced_query"]
         prompt = f'''
-        You are a data analysis expert. You are given a dataset and a user query. You need to generate seaborn python code to create a chart for the user query.
+        You are a data analysis expert. You are given a dataset and a user query. You need to generate matplotlib python code to create a chart for the user query.
         Dataset overview (top five rows): {state["df"].head().to_markdown()}
 
         User query: {query}.
 
         Generated code: {state["chart_code"]}
 
-        Please provide feedback on the generated seaborn code, whether the code is valid in syntax and faithful to the user query. If the code appears valid and faithful to the user query, return only the word "valid".
+        Please provide feedback on the generated matplotlib code, whether the code is valid in syntax and faithful to the user query. If the code appears valid and faithful to the user query, return only the word "valid".
         '''
         response = client.chat.completions.create(
         model="gpt-4.1",
@@ -366,7 +364,7 @@ class StravaWorkflow:
             return state
         else:
             prompt = f'''
-            You are a data analysis expert. You are given a dataset and a user query. You need to generate seaborn python code to create a chart for the user query.
+            You are a data analysis expert. You are given a dataset and a user query. You need to generate matplotlib python code to create a chart for the user query.
                 {state["overview"]}       
 
             User query: {query}.
@@ -378,8 +376,8 @@ class StravaWorkflow:
             Improve the code with the feedback if only necessary. Otherwise, return the original code.
 
             Requirements:
-            - Use seaborn and matplotlib for visualization
-            - Import necessary libraries (seaborn, matplotlib.pyplot, pandas)
+            - Use matplotlib for visualization
+            - Import necessary libraries (matplotlib.pyplot, pandas)
             - Refer to the dataset as 'df' in the code
             - DO NOT save to file - just create the chart and leave it in matplotlib's current figure
             - Make the chart visually appealing with proper styling
