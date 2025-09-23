@@ -12,3 +12,9 @@ pip install --only-binary=all -r requirements.txt
 pip install numpy==1.24.4 --only-binary=all || pip install numpy==1.24.4
 pip install pandas==2.0.3 --only-binary=all || pip install pandas==2.0.3
 pip install matplotlib==3.7.5 --only-binary=all || pip install matplotlib==3.7.5
+
+# Ensure uvicorn is properly installed and accessible
+pip install uvicorn==0.35.0
+
+# Verify uvicorn installation
+python -c "import uvicorn; print('uvicorn installed successfully')"
