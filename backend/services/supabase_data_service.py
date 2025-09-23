@@ -188,6 +188,44 @@ class SupabaseDataService:
             logger.error(f"Failed to clear user data: {e}")
             return False
     
+    def get_user_data_metadata(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get metadata about user's stored data including last update timestamp."""
+        if not self.use_supabase:
+            logger.warning("Supabase not available, cannot retrieve metadata")
+            return None
+        
+        try:
+            result = self.supabase.table("user_data").select("updated_at, row_count, data_type").eq("user_id", user_id).execute()
+            
+            if result.data:
+                metadata = result.data[0]
+                logger.info(f"Retrieved metadata for user {user_id}: {metadata}")
+                return metadata
+            else:
+                logger.info(f"No metadata found for user {user_id}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to retrieve user metadata: {e}")
+            return None
+    
+    def update_user_data_timestamp(self, user_id: str) -> bool:
+        """Update the timestamp for user data without changing the data itself."""
+        if not self.use_supabase:
+            return False
+        
+        try:
+            result = self.supabase.table("user_data").update({
+                "updated_at": datetime.now().isoformat()
+            }).eq("user_id", user_id).execute()
+            
+            logger.info(f"Updated timestamp for user {user_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to update timestamp for user {user_id}: {e}")
+            return False
+
     def is_available(self) -> bool:
         """Check if Supabase service is available."""
         return self.use_supabase

@@ -205,7 +205,7 @@ async def exchange_token(token_request: TokenRequest):
 
 @app.post("/data/refresh", response_model=DataRefreshResponse)
 async def refresh_user_data(authorization: str = Header(...)):
-    """Fetch fresh Strava data and update the workflow dataset"""
+    """Fetch fresh Strava data and update the workflow dataset using incremental loading"""
     global data_refresh_in_progress
     
     # Check if refresh is already in progress
@@ -226,33 +226,30 @@ async def refresh_user_data(authorization: str = Header(...)):
             raise HTTPException(status_code=401, detail="Invalid authorization header")
         
         access_token = authorization.replace("Bearer ", "")
-        logger.info("Starting data refresh for user")
-        
-        # Fetch activities from Strava
-        strava_service = StravaDataService()
-        activities = strava_service.get_activities(access_token)
-        
-        if not activities:
-            logger.warning("No activities found for user")
-            raise HTTPException(status_code=404, detail="No activities found")
-        
-        logger.info(f"Successfully fetched {len(activities)} activities from Strava")
-        
-        # Format the data
-        format_service = FormatDataService()
-        formatted_df = format_service.format_data(activities)
-        logger.info(f"Formatted {len(formatted_df)} running activities")
-        
-        # Process the data in memory
-        processed_df = format_service.fix_data(formatted_df)
-        logger.info("Data processing completed successfully")
+        logger.info("Starting incremental data refresh for user")
         
         # Get user profile to extract user_id
+        strava_service = StravaDataService()
         user_profile = strava_service.get_user_profile(access_token)
         user_id = str(user_profile['id']) if user_profile else "unknown_user"
         
-        # Store processed data using centralized data manager
-        data_manager.set_processed_data(processed_df, user_id)
+        # Check data freshness first
+        freshness_info = data_manager.check_data_freshness(user_id)
+        logger.info(f"Data freshness check: {freshness_info}")
+        
+        # Use incremental loading
+        load_result = data_manager.load_user_data_incremental(access_token, user_id)
+        
+        if not load_result["success"]:
+            logger.error(f"Incremental load failed: {load_result.get('error', 'Unknown error')}")
+            raise HTTPException(status_code=500, detail=f"Data refresh failed: {load_result.get('error', 'Unknown error')}")
+        
+        # Get the updated data
+        processed_df = data_manager.get_processed_data(user_id)
+        
+        if processed_df is None or processed_df.empty:
+            logger.warning("No data available after refresh")
+            raise HTTPException(status_code=404, detail="No data available after refresh")
         
         # Update the workflow with new data
         global workflow
@@ -268,8 +265,8 @@ async def refresh_user_data(authorization: str = Header(...)):
             # Continue anyway, the data is still processed
         
         return DataRefreshResponse(
-            message="Data refreshed successfully",
-            activities_count=len(activities),
+            message=f"Data refreshed successfully using {load_result['strategy']} strategy",
+            activities_count=load_result["total_activities"],
             file_path="in_memory_data",
             timestamp=datetime.now().isoformat()
         )
@@ -284,6 +281,32 @@ async def refresh_user_data(authorization: str = Header(...)):
         raise HTTPException(status_code=500, detail=f"Data refresh failed: {str(e)}")
     finally:
         data_refresh_in_progress = False
+
+@app.get("/data/freshness")
+async def check_data_freshness(authorization: str = Header(...)):
+    """Check how fresh the user's data is and whether it needs updating"""
+    try:
+        # Extract token from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        # Get user profile to extract user_id
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        # Check data freshness
+        freshness_info = data_manager.check_data_freshness(user_id)
+        
+        return freshness_info
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to check data freshness: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check data freshness: {str(e)}")
 
 @app.get("/data/status")
 async def get_data_status():

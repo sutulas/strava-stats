@@ -8,6 +8,8 @@ import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
 from .supabase_data_service import supabase_data_service
+from .incremental_data_service import IncrementalDataService
+from .data_merge_service import DataMergeService
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,12 @@ class DataManager:
         if cls._instance is None:
             cls._instance = super(DataManager, cls).__new__(cls)
         return cls._instance
+    
+    def __init__(self):
+        if not hasattr(self, '_initialized'):
+            self.incremental_service = IncrementalDataService()
+            self.merge_service = DataMergeService()
+            self._initialized = True
     
     def set_current_user(self, user_id: str) -> None:
         """Set the current user ID for data operations."""
@@ -164,6 +172,127 @@ class DataManager:
             "supabase_available": supabase_data_service.is_available(),
             "current_user": self._current_user_id
         }
+    
+    def load_user_data_incremental(self, access_token: str, user_id: str) -> Dict[str, Any]:
+        """
+        Load user data using incremental approach - only fetch new activities.
+        
+        Args:
+            access_token: Strava access token
+            user_id: User's Strava ID
+            
+        Returns:
+            Dictionary with loading results and summary
+        """
+        try:
+            logger.info(f"Starting incremental data load for user {user_id}")
+            
+            # Determine fetch strategy
+            fetch_strategy = self.incremental_service.get_data_fetch_strategy(user_id)
+            logger.info(f"Using {fetch_strategy} fetch strategy for user {user_id}")
+            
+            # Fetch new activities
+            new_activities = self.incremental_service.fetch_new_activities(access_token, user_id)
+            
+            if not new_activities:
+                logger.info(f"No new activities found for user {user_id}")
+                return {
+                    "success": True,
+                    "strategy": fetch_strategy,
+                    "new_activities": 0,
+                    "total_activities": len(self._processed_data) if self._processed_data is not None else 0,
+                    "message": "No new activities found"
+                }
+            
+            # Merge new activities with existing data
+            merged_df = self.merge_service.merge_activities_data(user_id, new_activities)
+            
+            if merged_df is None:
+                logger.error(f"Failed to merge data for user {user_id}")
+                return {
+                    "success": False,
+                    "strategy": fetch_strategy,
+                    "error": "Failed to merge new activities with existing data"
+                }
+            
+            # Validate merged data
+            if not self.merge_service.validate_merged_data(merged_df):
+                logger.error(f"Data validation failed for user {user_id}")
+                return {
+                    "success": False,
+                    "strategy": fetch_strategy,
+                    "error": "Data validation failed"
+                }
+            
+            # Store the merged data
+            self.set_processed_data(merged_df, user_id)
+            
+            # Get merge summary
+            merge_summary = self.merge_service.get_merge_summary(user_id, len(new_activities), merged_df)
+            
+            logger.info(f"Incremental data load completed for user {user_id}: {len(new_activities)} new activities")
+            
+            return {
+                "success": True,
+                "strategy": fetch_strategy,
+                "new_activities": len(new_activities),
+                "total_activities": len(merged_df),
+                "merge_summary": merge_summary,
+                "message": f"Successfully loaded {len(new_activities)} new activities"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in incremental data load for user {user_id}: {e}")
+            return {
+                "success": False,
+                "strategy": "incremental",
+                "error": str(e)
+            }
+    
+    def check_data_freshness(self, user_id: str) -> Dict[str, Any]:
+        """
+        Check how fresh the user's data is.
+        
+        Args:
+            user_id: User's Strava ID
+            
+        Returns:
+            Dictionary with freshness information
+        """
+        try:
+            # Get metadata from Supabase
+            metadata = supabase_data_service.get_user_data_metadata(user_id)
+            
+            if metadata is None:
+                return {
+                    "has_data": False,
+                    "last_updated": None,
+                    "data_age_hours": None,
+                    "needs_refresh": True
+                }
+            
+            # Calculate data age
+            last_updated = datetime.fromisoformat(metadata["updated_at"])
+            data_age_hours = (datetime.now() - last_updated).total_seconds() / 3600
+            
+            # Consider data stale if older than 24 hours
+            needs_refresh = data_age_hours > 24
+            
+            return {
+                "has_data": True,
+                "last_updated": metadata["updated_at"],
+                "data_age_hours": round(data_age_hours, 2),
+                "needs_refresh": needs_refresh,
+                "row_count": metadata.get("row_count", 0)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error checking data freshness for user {user_id}: {e}")
+            return {
+                "has_data": False,
+                "error": str(e),
+                "needs_refresh": True
+            }
 
 # Global instance
 data_manager = DataManager()
