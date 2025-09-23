@@ -9,6 +9,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { authService } from '../services/authService';
+import { apiService } from '../services/apiService';
 import LoadingScreen from '../components/LoadingScreen';
 
 const LoginPage: React.FC = () => {
@@ -17,6 +18,15 @@ const LoginPage: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // Wake up the backend service by calling health endpoint
+      try {
+        await apiService.getHealth();
+        console.log('Backend service health check successful');
+      } catch (error) {
+        console.warn('Backend service health check failed:', error);
+        // Continue with auth check even if health check fails
+      }
+
       // Check if user is already authenticated
       if (authService.isAuthenticated()) {
         // If user is already authenticated, go directly to dashboard
