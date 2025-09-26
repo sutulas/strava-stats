@@ -113,7 +113,9 @@ class ApiService {
 
   // Data status
   async getDataStatus() {
-    const response = await axios.get(`${API_BASE_URL}/data/status`);
+    const response = await axios.get(`${API_BASE_URL}/data/status`, {
+      headers: this.getAuthHeaders(),
+    });
     return response.data;
   }
 
@@ -173,7 +175,9 @@ class ApiService {
 
   // Get data overview
   async getDataOverview(): Promise<DataOverview> {
-    const response = await axios.get(`${API_BASE_URL}/data/overview`);
+    const response = await axios.get(`${API_BASE_URL}/data/overview`, {
+      headers: this.getAuthHeaders(),
+    });
     return response.data;
   }
 

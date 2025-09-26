@@ -20,11 +20,10 @@ class DataManager:
     """
     
     _instance = None
-    _processed_data: Optional[pd.DataFrame] = None
-    _cached_user_stats: Optional[Dict[str, Any]] = None
-    _cached_data_overview: Optional[Dict[str, Any]] = None
-    _data_loaded_at: Optional[datetime] = None
-    _current_user_id: Optional[str] = None
+    _user_data: Dict[str, pd.DataFrame] = {}  # user_id -> DataFrame
+    _cached_user_stats: Dict[str, Dict[str, Any]] = {}  # user_id -> stats
+    _cached_data_overview: Dict[str, Dict[str, Any]] = {}  # user_id -> overview
+    _data_loaded_at: Dict[str, datetime] = {}  # user_id -> timestamp
     
     def __new__(cls):
         if cls._instance is None:
@@ -37,140 +36,138 @@ class DataManager:
             self.merge_service = DataMergeService()
             self._initialized = True
     
-    def set_current_user(self, user_id: str) -> None:
-        """Set the current user ID for data operations."""
-        self._current_user_id = user_id
-        logger.info(f"Data manager set for user: {user_id}")
-    
-    def set_processed_data(self, data: pd.DataFrame, user_id: Optional[str] = None) -> None:
-        """Set the processed data and clear caches."""
-        if user_id:
-            self.set_current_user(user_id)
+    def set_processed_data(self, data: pd.DataFrame, user_id: str) -> None:
+        """Set the processed data for a specific user and clear their caches."""
+        if not user_id:
+            raise ValueError("user_id is required")
         
-        logger.info(f"Data manager setting processed data: {len(data)} rows for user {self._current_user_id}")
+        logger.info(f"Data manager setting processed data: {len(data)} rows for user {user_id}")
         
-        self._processed_data = data.copy()  # Make a copy to prevent external modifications
-        self._cached_user_stats = None
-        self._cached_data_overview = None
-        self._data_loaded_at = datetime.now()
+        self._user_data[user_id] = data.copy()  # Make a copy to prevent external modifications
+        self._cached_user_stats[user_id] = None
+        self._cached_data_overview[user_id] = None
+        self._data_loaded_at[user_id] = datetime.now()
         
         # Try to persist to Supabase
-        if self._current_user_id and supabase_data_service.is_available():
-            logger.info(f"Attempting to persist data to Supabase for user {self._current_user_id}")
-            success = supabase_data_service.store_user_data(self._current_user_id, data)
+        if supabase_data_service.is_available():
+            logger.info(f"Attempting to persist data to Supabase for user {user_id}")
+            success = supabase_data_service.store_user_data(user_id, data)
             logger.info(f"Supabase persistence result: {success}")
         else:
-            logger.info(f"Not persisting to Supabase - user_id: {self._current_user_id}, available: {supabase_data_service.is_available()}")
+            logger.info(f"Not persisting to Supabase - user_id: {user_id}, available: {supabase_data_service.is_available()}")
         
-        logger.info(f"Data manager updated with {len(data)} rows of processed data")
+        logger.info(f"Data manager updated with {len(data)} rows of processed data for user {user_id}")
     
-    def get_processed_data(self, user_id: Optional[str] = None) -> Optional[pd.DataFrame]:
-        """Get the processed data."""
-        if user_id:
-            self.set_current_user(user_id)
+    def get_processed_data(self, user_id: str) -> Optional[pd.DataFrame]:
+        """Get the processed data for a specific user."""
+        if not user_id:
+            raise ValueError("user_id is required")
         
-        # If we have data in memory, return it
-        if self._processed_data is not None:
-            logger.debug(f"Data manager returning {len(self._processed_data)} rows of data from memory")
-            return self._processed_data
+        # If we have data in memory for this user, return it
+        if user_id in self._user_data and self._user_data[user_id] is not None:
+            logger.debug(f"Data manager returning {len(self._user_data[user_id])} rows of data from memory for user {user_id}")
+            return self._user_data[user_id]
         
         # Try to load from Supabase if available
-        if self._current_user_id and supabase_data_service.is_available():
-            data = supabase_data_service.get_user_data(self._current_user_id)
+        if supabase_data_service.is_available():
+            data = supabase_data_service.get_user_data(user_id)
             if data is not None:
-                self._processed_data = data
-                self._data_loaded_at = datetime.now()
-                logger.info(f"Loaded {len(data)} rows from Supabase for user {self._current_user_id}")
+                self._user_data[user_id] = data
+                self._data_loaded_at[user_id] = datetime.now()
+                logger.info(f"Loaded {len(data)} rows from Supabase for user {user_id}")
                 return data
         
-        logger.debug("No data available in memory or Supabase")
+        logger.debug(f"No data available in memory or Supabase for user {user_id}")
         return None
     
-    def has_data(self) -> bool:
-        """Check if processed data is available."""
-        return self._processed_data is not None and not self._processed_data.empty
+    def has_data(self, user_id: str) -> bool:
+        """Check if processed data is available for a specific user."""
+        if user_id not in self._user_data:
+            return False
+        return self._user_data[user_id] is not None and not self._user_data[user_id].empty
     
-    def clear_data(self) -> None:
-        """Clear all data and caches."""
-        self._processed_data = None
-        self._cached_user_stats = None
-        self._cached_data_overview = None
-        self._data_loaded_at = None
-        logger.info("Data manager cleared all data")
+    def clear_data(self, user_id: str = None) -> None:
+        """Clear data and caches for a specific user or all users."""
+        if user_id:
+            # Clear data for specific user
+            if user_id in self._user_data:
+                del self._user_data[user_id]
+            if user_id in self._cached_user_stats:
+                del self._cached_user_stats[user_id]
+            if user_id in self._cached_data_overview:
+                del self._cached_data_overview[user_id]
+            if user_id in self._data_loaded_at:
+                del self._data_loaded_at[user_id]
+            logger.info(f"Data manager cleared data for user {user_id}")
+        else:
+            # Clear all data
+            self._user_data.clear()
+            self._cached_user_stats.clear()
+            self._cached_data_overview.clear()
+            self._data_loaded_at.clear()
+            logger.info("Data manager cleared all data for all users")
     
-    def set_cached_user_stats(self, stats: Dict[str, Any]) -> None:
-        """Cache user statistics."""
-        self._cached_user_stats = stats.copy()
+    def set_cached_user_stats(self, stats: Dict[str, Any], user_id: str) -> None:
+        """Cache user statistics for a specific user."""
+        self._cached_user_stats[user_id] = stats.copy()
         
         # Try to persist to Supabase
-        if self._current_user_id and supabase_data_service.is_available():
-            supabase_data_service.store_cached_stats(self._current_user_id, stats)
+        if supabase_data_service.is_available():
+            supabase_data_service.store_cached_stats(user_id, stats)
         
-        logger.debug("User stats cached in data manager")
+        logger.debug(f"User stats cached in data manager for user {user_id}")
     
-    def get_cached_user_stats(self) -> Optional[Dict[str, Any]]:
-        """Get cached user statistics."""
+    def get_cached_user_stats(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get cached user statistics for a specific user."""
         # Return from memory if available
-        if self._cached_user_stats is not None:
-            return self._cached_user_stats
+        if user_id in self._cached_user_stats and self._cached_user_stats[user_id] is not None:
+            return self._cached_user_stats[user_id]
         
         # Try to load from Supabase
-        if self._current_user_id and supabase_data_service.is_available():
-            stats = supabase_data_service.get_cached_stats(self._current_user_id)
+        if supabase_data_service.is_available():
+            stats = supabase_data_service.get_cached_stats(user_id)
             if stats is not None:
-                self._cached_user_stats = stats
+                self._cached_user_stats[user_id] = stats
                 return stats
         
         return None
     
-    def set_cached_data_overview(self, overview: Dict[str, Any]) -> None:
-        """Cache data overview."""
-        self._cached_data_overview = overview.copy()
+    def set_cached_data_overview(self, overview: Dict[str, Any], user_id: str) -> None:
+        """Cache data overview for a specific user."""
+        self._cached_data_overview[user_id] = overview.copy()
         
         # Try to persist to Supabase
-        if self._current_user_id and supabase_data_service.is_available():
-            supabase_data_service.store_cached_overview(self._current_user_id, overview)
+        if supabase_data_service.is_available():
+            supabase_data_service.store_cached_overview(user_id, overview)
         
-        logger.debug("Data overview cached in data manager")
+        logger.debug(f"Data overview cached in data manager for user {user_id}")
     
-    def get_cached_data_overview(self) -> Optional[Dict[str, Any]]:
-        """Get cached data overview."""
+    def get_cached_data_overview(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get cached data overview for a specific user."""
         # Return from memory if available
-        if self._cached_data_overview is not None:
-            return self._cached_data_overview
+        if user_id in self._cached_data_overview and self._cached_data_overview[user_id] is not None:
+            return self._cached_data_overview[user_id]
         
         # Try to load from Supabase
-        if self._current_user_id and supabase_data_service.is_available():
-            overview = supabase_data_service.get_cached_overview(self._current_user_id)
+        if supabase_data_service.is_available():
+            overview = supabase_data_service.get_cached_overview(user_id)
             if overview is not None:
-                self._cached_data_overview = overview
+                self._cached_data_overview[user_id] = overview
                 return overview
         
         return None
     
-    def clear_data(self) -> None:
-        """Clear all data and caches."""
-        self._processed_data = None
-        self._cached_user_stats = None
-        self._cached_data_overview = None
-        self._data_loaded_at = None
-        
-        # Clear from Supabase if available
-        if self._current_user_id and supabase_data_service.is_available():
-            supabase_data_service.clear_user_data(self._current_user_id)
-        
-        logger.info("Data manager cleared all data")
     
-    def get_data_info(self) -> Dict[str, Any]:
-        """Get information about the current data state."""
+    def get_data_info(self, user_id: str) -> Dict[str, Any]:
+        """Get information about the current data state for a specific user."""
         return {
-            "has_data": self.has_data(),
-            "data_rows": len(self._processed_data) if self._processed_data is not None else 0,
-            "data_loaded_at": self._data_loaded_at.isoformat() if self._data_loaded_at else None,
-            "has_cached_stats": self._cached_user_stats is not None,
-            "has_cached_overview": self._cached_data_overview is not None,
+            "has_data": self.has_data(user_id),
+            "data_rows": len(self._user_data[user_id]) if user_id in self._user_data and self._user_data[user_id] is not None else 0,
+            "data_loaded_at": self._data_loaded_at[user_id].isoformat() if user_id in self._data_loaded_at else None,
+            "has_cached_stats": user_id in self._cached_user_stats and self._cached_user_stats[user_id] is not None,
+            "has_cached_overview": user_id in self._cached_data_overview and self._cached_data_overview[user_id] is not None,
             "supabase_available": supabase_data_service.is_available(),
-            "current_user": self._current_user_id
+            "user_id": user_id
         }
     
     def load_user_data_incremental(self, access_token: str, user_id: str) -> Dict[str, Any]:

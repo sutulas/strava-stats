@@ -82,9 +82,9 @@ def get_workflow() -> StravaWorkflow:
     
     return workflow
 
-def check_data_file():
-    """Check if the required data is available in memory"""
-    if not data_manager.has_data():
+def check_data_file(user_id: str):
+    """Check if the required data is available in memory for a specific user"""
+    if not data_manager.has_data(user_id):
         raise HTTPException(
             status_code=404, 
             detail="No data available. Please refresh your data first."
@@ -122,16 +122,16 @@ async def process_query(
                 detail=f"Rate limit exceeded. You have used all {rate_limiter.max_queries} queries for this session."
             )
         
-        # Check if data is available
-        check_data_file()
-        
-        logger.info(f"Processing query: {request.query}")
-        
         # Extract user_id from authorization token
         from services.strava_data_service import StravaDataService
         strava_service = StravaDataService()
         user_profile = strava_service.get_user_profile(access_token)
         user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        # Check if data is available for this user
+        check_data_file(user_id)
+        
+        logger.info(f"Processing query: {request.query}")
         
         # Use the in-memory data from data manager
         df = data_manager.get_processed_data(user_id)
@@ -229,23 +229,41 @@ async def get_chart():
         )
 
 @router.get("/data/overview")
-async def get_data_overview():
+async def get_data_overview(authorization: str = Header(...)):
     """
     Get an overview of the available data.
     
     Returns basic statistics and information about the loaded dataset.
     """
     try:
+        # Extract access token from authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        if not access_token:
+            raise HTTPException(status_code=401, detail="No access token provided")
+        
+        # Extract user_id from authorization token
+        from services.strava_data_service import StravaDataService
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
         # Return cached data if available
-        cached_overview = data_manager.get_cached_data_overview()
+        cached_overview = data_manager.get_cached_data_overview(user_id)
         if cached_overview is not None:
             logger.info("Returning cached data overview")
             return cached_overview
         
-        check_data_file()
-        
-        # For data overview, we'll use the current user from data manager
-        df = data_manager.get_processed_data()
+        # Get processed data for the specific user
+        df = data_manager.get_processed_data(user_id)
+        if df is None:
+            raise HTTPException(
+                status_code=404, 
+                detail="No data available. Please refresh your data first."
+            )
         
         overview = {
             "total_activities": len(df),
@@ -259,7 +277,7 @@ async def get_data_overview():
         }
         
         # Cache the results
-        data_manager.set_cached_data_overview(overview)
+        data_manager.set_cached_data_overview(overview, user_id)
         logger.info("Cached data overview for future requests")
         
         return overview

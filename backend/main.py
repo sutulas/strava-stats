@@ -149,8 +149,8 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Detailed health check endpoint"""
-    data_info = data_manager.get_data_info()
-    data_file_exists = data_info["has_data"]
+    # Health check doesn't need user-specific data
+    data_file_exists = False  # We can't check without a user context
     
     # Check environment variables
     openai_key_set = bool(os.getenv("OPENAI_API_KEY"))
@@ -309,10 +309,24 @@ async def check_data_freshness(authorization: str = Header(...)):
         raise HTTPException(status_code=500, detail=f"Failed to check data freshness: {str(e)}")
 
 @app.get("/data/status")
-async def get_data_status():
+async def get_data_status(authorization: str = Header(...)):
     """Get the current status of the user's data"""
     try:
-        data_info = data_manager.get_data_info()
+        # Extract access token from authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        if not access_token:
+            raise HTTPException(status_code=401, detail="No access token provided")
+        
+        # Extract user_id from authorization token
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        data_info = data_manager.get_data_info(user_id)
         
         if data_info["has_data"]:
             activities_count = data_info["data_rows"]
@@ -382,7 +396,7 @@ async def get_user_stats(authorization: str = Header(...)):
         user_id = str(user_profile['id']) if user_profile else "unknown_user"
         
         # Return cached data if available
-        cached_stats = data_manager.get_cached_user_stats()
+        cached_stats = data_manager.get_cached_user_stats(user_id)
         if cached_stats is not None:
             logger.info("Returning cached user stats")
             return cached_stats
@@ -400,7 +414,7 @@ async def get_user_stats(authorization: str = Header(...)):
             raise HTTPException(status_code=404, detail=stats_data["error"])
         
         # Cache the results
-        data_manager.set_cached_user_stats(stats_data)
+        data_manager.set_cached_user_stats(stats_data, user_id)
         logger.info("Cached user stats for future requests")
         
         return stats_data
