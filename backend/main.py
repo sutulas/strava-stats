@@ -496,7 +496,7 @@ async def delete_user_data(authorization: str = Header(...)):
         logger.info(f"Deleting data for user: {user_id}")
         
         # Clear all data using centralized data manager (this will also clear Supabase)
-        data_manager.clear_data()
+        data_manager.clear_data(user_id)
         
         # Clear workflow
         global workflow

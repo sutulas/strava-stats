@@ -197,7 +197,7 @@ class DataManager:
                     "success": True,
                     "strategy": fetch_strategy,
                     "new_activities": 0,
-                    "total_activities": len(self._processed_data) if self._processed_data is not None else 0,
+                    "total_activities": len(self._user_data[user_id]) if user_id in self._user_data and self._user_data[user_id] is not None else 0,
                     "message": "No new activities found"
                 }
             
