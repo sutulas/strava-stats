@@ -16,9 +16,16 @@ import {
   Collapse,
   IconButton,
   Link,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import { Send, Image, Refresh, ExpandMore, ExpandLess } from '@mui/icons-material';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { apiService, QueryResponse, ExampleQueries, RateLimitStatus } from '../services/apiService';
 
 const AnalysisPage: React.FC = () => {
@@ -250,6 +257,7 @@ const AnalysisPage: React.FC = () => {
                   }}
                 >
                   <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
                       // Custom styling for markdown elements
                       p: ({ children }) => (
@@ -382,6 +390,59 @@ const AnalysisPage: React.FC = () => {
                             {children}
                           </Typography>
                         </Paper>
+                      ),
+                      table: ({ children }) => (
+                        <TableContainer
+                          component={Paper}
+                          sx={{
+                            backgroundColor: '#1a1a1a',
+                            border: '1px solid #333333',
+                            borderRadius: 1,
+                            mb: 2,
+                            overflow: 'auto',
+                          }}
+                        >
+                          <Table size="small">
+                            {children}
+                          </Table>
+                        </TableContainer>
+                      ),
+                      thead: ({ children }) => (
+                        <TableHead>
+                          {children}
+                        </TableHead>
+                      ),
+                      tbody: ({ children }) => (
+                        <TableBody>
+                          {children}
+                        </TableBody>
+                      ),
+                      tr: ({ children }) => (
+                        <TableRow>
+                          {children}
+                        </TableRow>
+                      ),
+                      th: ({ children }) => (
+                        <TableCell
+                          sx={{
+                            color: '#FC5200',
+                            fontWeight: 'bold',
+                            backgroundColor: '#333333',
+                            borderBottom: '1px solid #555555',
+                          }}
+                        >
+                          {children}
+                        </TableCell>
+                      ),
+                      td: ({ children }) => (
+                        <TableCell
+                          sx={{
+                            color: '#ffffff',
+                            borderBottom: '1px solid #333333',
+                          }}
+                        >
+                          {children}
+                        </TableCell>
                       ),
                     }}
                   >

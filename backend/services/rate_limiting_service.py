@@ -21,7 +21,7 @@ class RateLimitingService:
     token, effectively resetting their rate limit.
     """
     
-    def __init__(self, max_queries: int = 5):
+    def __init__(self, max_queries: int = 10):
         """
         Initialize the rate limiting service.
         
