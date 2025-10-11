@@ -37,16 +37,17 @@ class DataManager:
             self._initialized = True
     
     def set_processed_data(self, data: pd.DataFrame, user_id: str) -> None:
-        """Set the processed data for a specific user and clear their caches."""
+        """Set the processed data for a specific user and immediately recalculate all cached values."""
         if not user_id:
             raise ValueError("user_id is required")
         
         logger.info(f"Data manager setting processed data: {len(data)} rows for user {user_id}")
         
         self._user_data[user_id] = data.copy()  # Make a copy to prevent external modifications
-        self._cached_user_stats[user_id] = None
-        self._cached_data_overview[user_id] = None
         self._data_loaded_at[user_id] = datetime.now()
+        
+        # Immediately recalculate and cache stats and overview
+        self._recalculate_and_cache_all_data(user_id, data)
         
         # Try to persist to Supabase
         if supabase_data_service.is_available():
@@ -57,6 +58,33 @@ class DataManager:
             logger.info(f"Not persisting to Supabase - user_id: {user_id}, available: {supabase_data_service.is_available()}")
         
         logger.info(f"Data manager updated with {len(data)} rows of processed data for user {user_id}")
+    
+    def _recalculate_and_cache_all_data(self, user_id: str, data: pd.DataFrame):
+        """Recalculate and cache all derived data immediately."""
+        try:
+            # Recalculate user stats
+            from services.user_analytics_service import UserAnalyticsService
+            analytics_service = UserAnalyticsService()
+            stats_data = analytics_service.get_user_stats(data)
+            self.set_cached_user_stats(stats_data, user_id)
+            
+            # Recalculate data overview
+            overview = {
+                "total_activities": len(data),
+                "date_range": {
+                    "start": data['start_date'].min() if 'start_date' in data.columns else None,
+                    "end": data['start_date'].max() if 'start_date' in data.columns else None
+                },
+                "columns": list(data.columns),
+                "sample_data": data.head(3).to_dict('records'),
+                "data_loaded_at": datetime.now().isoformat()
+            }
+            self.set_cached_data_overview(overview, user_id)
+            
+            logger.info(f"Recalculated and cached all data for user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error recalculating cached data for user {user_id}: {e}")
     
     def get_processed_data(self, user_id: str) -> Optional[pd.DataFrame]:
         """Get the processed data for a specific user."""

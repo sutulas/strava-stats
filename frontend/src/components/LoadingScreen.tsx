@@ -25,8 +25,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
   const [steps, setSteps] = useState<LoadingStep[]>([
     { id: 'profile', label: 'Loading user profile...', completed: false },
     { id: 'data', label: 'Refreshing activity data...', completed: false },
-    { id: 'stats', label: 'Calculating statistics...', completed: false },
-    { id: 'overview', label: 'Preparing data overview...', completed: false },
+    { id: 'processing', label: 'Processing and caching data...', completed: false },
+    { id: 'complete', label: 'Data ready!', completed: false },
   ]);
   const hasLoaded = useRef(false);
 
@@ -47,23 +47,21 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete }) => {
           index === 0 ? { ...step, completed: true } : step
         ));
 
-        // Step 2: Refresh data
+        // Step 2: Refresh data (this now includes recalculation)
         setCurrentStep(1);
-        await apiService.refreshData();
+        const refreshResult = await apiService.refreshData();
         setSteps(prev => prev.map((step, index) => 
           index === 1 ? { ...step, completed: true } : step
         ));
 
-        // Step 3: Load user stats
+        // Step 3: Data is already calculated and cached
         setCurrentStep(2);
-        await apiService.getUserStats();
         setSteps(prev => prev.map((step, index) => 
           index === 2 ? { ...step, completed: true } : step
         ));
 
-        // Step 4: Load data overview
+        // Step 4: Complete
         setCurrentStep(3);
-        await apiService.getDataOverview();
         setSteps(prev => prev.map((step, index) => 
           index === 3 ? { ...step, completed: true } : step
         ));

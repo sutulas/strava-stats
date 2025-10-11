@@ -111,6 +111,14 @@ class ApiService {
     return response.data;
   }
 
+  // Recalculate all data
+  async recalculateData() {
+    const response = await axios.post(`${API_BASE_URL}/data/recalculate`, {}, {
+      headers: this.getAuthHeaders(),
+    });
+    return response.data;
+  }
+
   // Data status
   async getDataStatus() {
     const response = await axios.get(`${API_BASE_URL}/data/status`, {

@@ -4,7 +4,7 @@ from fastapi.responses import FileResponse
 import uvicorn
 import os
 import pandas as pd
-from typing import Optional
+from typing import Optional, Dict, Any
 import uuid
 import asyncio
 from datetime import datetime
@@ -35,6 +35,8 @@ class DataRefreshResponse(BaseModel):
     activities_count: int
     file_path: str
     timestamp: str
+    cached_stats: Optional[Dict[str, Any]] = None
+    cached_overview: Optional[Dict[str, Any]] = None
 
 # Create FastAPI app
 app = FastAPI(
@@ -264,11 +266,17 @@ async def refresh_user_data(authorization: str = Header(...)):
             logger.error(f"Failed to update workflow: {e}")
             # Continue anyway, the data is still processed
         
+        # Get the freshly calculated cached data
+        cached_stats = data_manager.get_cached_user_stats(user_id)
+        cached_overview = data_manager.get_cached_data_overview(user_id)
+        
         return DataRefreshResponse(
             message=f"Data refreshed successfully using {load_result['strategy']} strategy",
             activities_count=load_result["total_activities"],
             file_path="in_memory_data",
-            timestamp=datetime.now().isoformat()
+            timestamp=datetime.now().isoformat(),
+            cached_stats=cached_stats,
+            cached_overview=cached_overview
         )
         
     except HTTPException:
@@ -476,6 +484,46 @@ async def manual_workflow_initialization():
             "error": "Workflow initialization failed after all retry attempts",
             "timestamp": datetime.now().isoformat()
         }
+
+@app.post("/data/recalculate")
+async def recalculate_all_data(authorization: str = Header(...)):
+    """Force recalculation of all cached data for a user."""
+    try:
+        # Extract token from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        # Get user profile to extract user_id
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        # Get current data
+        processed_data = data_manager.get_processed_data(user_id)
+        if processed_data is None:
+            raise HTTPException(status_code=404, detail="No data available. Please refresh your data first.")
+        
+        # Force recalculation
+        data_manager._recalculate_and_cache_all_data(user_id, processed_data)
+        
+        # Get the freshly calculated cached data
+        cached_stats = data_manager.get_cached_user_stats(user_id)
+        cached_overview = data_manager.get_cached_data_overview(user_id)
+        
+        return {
+            "message": "All data recalculated successfully",
+            "timestamp": datetime.now().isoformat(),
+            "cached_stats": cached_stats,
+            "cached_overview": cached_overview
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to recalculate data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to recalculate data: {str(e)}")
 
 @app.delete("/data/delete")
 async def delete_user_data(authorization: str = Header(...)):
