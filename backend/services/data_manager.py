@@ -6,7 +6,7 @@ This ensures data consistency and prevents data loss in production environments.
 import pandas as pd
 import logging
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from .supabase_data_service import supabase_data_service
 from .incremental_data_service import IncrementalDataService
 from .data_merge_service import DataMergeService
@@ -69,15 +69,23 @@ class DataManager:
             self.set_cached_user_stats(stats_data, user_id)
             
             # Recalculate data overview
+            # Get the actual database timestamp for when data was last updated
+            metadata = supabase_data_service.get_user_data_metadata(user_id)
+            last_updated = metadata["updated_at"] if metadata else datetime.now().isoformat()
+            
+            # Convert pandas Timestamps to strings for JSON serialization
+            start_date = data['start_date'].min() if 'start_date' in data.columns else None
+            end_date = data['start_date'].max() if 'start_date' in data.columns else None
+            
             overview = {
                 "total_activities": len(data),
                 "date_range": {
-                    "start": data['start_date'].min() if 'start_date' in data.columns else None,
-                    "end": data['start_date'].max() if 'start_date' in data.columns else None
+                    "start": str(start_date) if start_date is not None else None,
+                    "end": str(end_date) if end_date is not None else None
                 },
                 "columns": list(data.columns),
                 "sample_data": data.head(3).to_dict('records'),
-                "data_loaded_at": datetime.now().isoformat()
+                "data_loaded_at": last_updated
             }
             self.set_cached_data_overview(overview, user_id)
             
@@ -221,12 +229,24 @@ class DataManager:
             
             if not new_activities:
                 logger.info(f"No new activities found for user {user_id}")
+                
+                # Even if no new activities, we should update the timestamp to reflect the refresh attempt
+                # and refresh cached data to ensure the UI shows the latest refresh time
+                existing_data = self.get_processed_data(user_id)
+                if existing_data is not None and not existing_data.empty:
+                    # Update the timestamp in the database to reflect the refresh attempt
+                    if supabase_data_service.is_available():
+                        supabase_data_service.update_user_data_timestamp(user_id)
+                    
+                    # Refresh cached data to show updated timestamp
+                    self._recalculate_and_cache_all_data(user_id, existing_data)
+                
                 return {
                     "success": True,
                     "strategy": fetch_strategy,
                     "new_activities": 0,
                     "total_activities": len(self._user_data[user_id]) if user_id in self._user_data and self._user_data[user_id] is not None else 0,
-                    "message": "No new activities found"
+                    "message": "No new activities found, but data refreshed"
                 }
             
             # Merge new activities with existing data
@@ -298,7 +318,11 @@ class DataManager:
             
             # Calculate data age
             last_updated = datetime.fromisoformat(metadata["updated_at"])
-            data_age_hours = (datetime.now() - last_updated).total_seconds() / 3600
+            # Ensure both datetimes are timezone-aware for comparison
+            if last_updated.tzinfo is None:
+                last_updated = last_updated.replace(tzinfo=timezone.utc)
+            current_time = datetime.now(timezone.utc)
+            data_age_hours = (current_time - last_updated).total_seconds() / 3600
             
             # Consider data stale if older than 24 hours
             needs_refresh = data_age_hours > 24

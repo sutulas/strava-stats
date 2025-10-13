@@ -9,7 +9,12 @@ import logging
 from typing import Optional, Dict, Any
 from datetime import datetime
 import os
+from io import StringIO
 from supabase import create_client, Client
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -51,17 +56,33 @@ class SupabaseDataService:
             data_json = data.to_json(orient='records', date_format='iso')
             logger.info(f"Converted DataFrame to JSON, size: {len(data_json)} characters")
             
-            # Store in Supabase
-            result = self.supabase.table("user_data").upsert({
-                "user_id": user_id,
-                "data": data_json,
-                "data_type": "processed_activities",
-                "row_count": len(data),
-                "updated_at": datetime.now().isoformat()
-            }).execute()
+            # Check if user data already exists
+            existing_result = self.supabase.table("user_data").select("id").eq("user_id", user_id).eq("data_type", "processed_activities").execute()
+            
+            if existing_result.data:
+                # Update existing record using the row ID
+                row_id = existing_result.data[0]["id"]
+                logger.info(f"Updating existing record with ID {row_id} for user {user_id}")
+                
+                result = self.supabase.table("user_data").update({
+                    "data": data_json,
+                    "row_count": len(data),
+                    "updated_at": datetime.now().isoformat()
+                }).eq("id", row_id).execute()
+            else:
+                # Insert new record
+                logger.info(f"Creating new record for user {user_id}")
+                
+                result = self.supabase.table("user_data").insert({
+                    "user_id": user_id,
+                    "data": data_json,
+                    "data_type": "processed_activities",
+                    "row_count": len(data),
+                    "updated_at": datetime.now().isoformat()
+                }).execute()
             
             logger.info(f"Successfully stored {len(data)} rows for user {user_id}")
-            logger.info(f"Supabase response: {result}")
+            # logger.info(f"Supabase response: {result}")
             return True
             
         except Exception as e:
@@ -80,7 +101,7 @@ class SupabaseDataService:
             
             if result.data:
                 data_json = result.data[0]["data"]
-                df = pd.read_json(data_json, orient='records')
+                df = pd.read_json(StringIO(data_json), orient='records')
                 logger.info(f"Retrieved {len(df)} rows for user {user_id}")
                 return df
             else:
@@ -102,7 +123,7 @@ class SupabaseDataService:
                 "cache_type": "user_stats",
                 "cache_data": json.dumps(stats),
                 "updated_at": datetime.now().isoformat()
-            }).execute()
+            }, on_conflict="user_id,cache_type").execute()
             
             logger.debug(f"Cached stats for user {user_id}")
             return True
@@ -141,7 +162,7 @@ class SupabaseDataService:
                 "cache_type": "data_overview",
                 "cache_data": json.dumps(overview),
                 "updated_at": datetime.now().isoformat()
-            }).execute()
+            }, on_conflict="user_id,cache_type").execute()
             
             logger.debug(f"Cached overview for user {user_id}")
             return True

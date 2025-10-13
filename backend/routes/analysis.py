@@ -265,15 +265,24 @@ async def get_data_overview(authorization: str = Header(...)):
                 detail="No data available. Please refresh your data first."
             )
         
+        # Get the actual database timestamp for when data was last updated
+        from services.supabase_data_service import supabase_data_service
+        metadata = supabase_data_service.get_user_data_metadata(user_id)
+        last_updated = metadata["updated_at"] if metadata else datetime.now().isoformat()
+        
+        # Convert pandas Timestamps to strings for JSON serialization
+        start_date = df['start_date'].min() if 'start_date' in df.columns else None
+        end_date = df['start_date'].max() if 'start_date' in df.columns else None
+        
         overview = {
             "total_activities": len(df),
             "date_range": {
-                "start": df['start_date'].min() if 'start_date' in df.columns else None,
-                "end": df['start_date'].max() if 'start_date' in df.columns else None
+                "start": str(start_date) if start_date is not None else None,
+                "end": str(end_date) if end_date is not None else None
             },
             "columns": list(df.columns),
             "sample_data": df.head(3).to_dict('records'),
-            "data_loaded_at": datetime.now().isoformat()
+            "data_loaded_at": last_updated
         }
         
         # Cache the results

@@ -88,8 +88,8 @@ class IncrementalDataService:
                     logger.info(f"Fetching page {page} for incremental update")
                     response = requests.get(url, headers=headers, params={
                         "per_page": 100, 
-                        'page': page,
-                        'after': int(last_activity_date.timestamp())  # Strava expects Unix timestamp
+                        'page': page
+                        # 'after': int(last_activity_date.timestamp())  # Strava expects Unix timestamp
                     })
                     
                     if response.status_code != 200:
