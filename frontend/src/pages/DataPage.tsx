@@ -126,16 +126,24 @@ const DataPage: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Typography variant="h6">
+              <Box mb={3}>
+                <Typography variant="h6" gutterBottom>
                   Data Overview
                 </Typography>
-                <Stack direction="row" spacing={2}>
+                <Stack 
+                  direction={{ xs: 'column', sm: 'row' }} 
+                  spacing={2}
+                  sx={{ 
+                    justifyContent: { sm: 'flex-end' },
+                    alignItems: { xs: 'stretch', sm: 'center' }
+                  }}
+                >
                   <Button
                     variant="outlined"
                     startIcon={refreshing ? <CircularProgress size={20} /> : <Refresh />}
                     onClick={handleRefreshData}
                     disabled={refreshing}
+                    sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
                   >
                     {refreshing ? 'Refreshing...' : 'Refresh Data'}
                   </Button>
@@ -145,6 +153,7 @@ const DataPage: React.FC = () => {
                     onClick={handleDownloadData}
                     sx={{
                       backgroundColor: '#FC5200',
+                      minWidth: { xs: '100%', sm: 'auto' },
                       '&:hover': {
                         backgroundColor: '#e64a19',
                       },
