@@ -118,7 +118,7 @@ const ProfilePage: React.FC = () => {
   // Prepare chart data
   const weeklyData = userStats?.weekly_stats?.map((week, index) => ({
     week: `Week ${index + 1}`,
-    miles: week.miles || 0,
+    miles: week.miles ? parseFloat(week.miles.toFixed(2)) : 0,
   })) || [];
 
   const monthlyData = userStats?.monthly_stats?.map(month => ({
@@ -129,6 +129,10 @@ const ProfilePage: React.FC = () => {
   const dayOfWeekData = userStats?.day_of_week_stats?.map(day => ({
     day: day.day,
     runs: day.runs || 0,
+    miles: day.miles || 0,
+    avg_distance: day.avg_distance || 0,
+    avg_pace: day.avg_pace || 0,
+    total_time: day.total_time || 0,
   })) || [];
 
   const COLORS = ['#FC5200', '#ff8a65', '#ffab91', '#ffccbc', '#ffe0b2'];
@@ -355,10 +359,28 @@ const ProfilePage: React.FC = () => {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: '#111111',
-                          border: '1px solid #333333',
-                          color: '#ffffff',
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            return (
+                              <div style={{
+                                backgroundColor: '#111111',
+                                border: '1px solid #333333',
+                                borderRadius: '4px',
+                                padding: '8px 12px',
+                                color: '#ffffff',
+                                fontSize: '14px',
+                              }}>
+                                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                                  {data.day}
+                                </div>
+                                <div>Runs: {data.runs}</div>
+                                <div>Total Miles: {data.miles?.toFixed(2) || '0.00'}</div>
+                                <div>Avg Distance: {data.avg_distance?.toFixed(2) || '0.00'} mi</div>
+                              </div>
+                            );
+                          }
+                          return null;
                         }}
                       />
                     </PieChart>
