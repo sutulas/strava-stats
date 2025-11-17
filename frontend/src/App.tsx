@@ -5,10 +5,10 @@ import { authService } from './services/authService';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
-import DashboardPage from './pages/DashboardPage';
 import ProfilePage from './pages/ProfilePage';
 import AnalysisPage from './pages/AnalysisPage';
 import DataPage from './pages/DataPage';
+import RunPredictorPage from './pages/RunPredictorPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import { CircularProgress, Box } from '@mui/material';
@@ -60,13 +60,13 @@ const App: React.FC = () => {
           <Route
             path="/login"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+              isAuthenticated ? <Navigate to="/profile" replace /> : <LoginPage />
             }
           />
           <Route
             path="/auth/callback"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthCallbackPage />
+              isAuthenticated ? <Navigate to="/profile" replace /> : <AuthCallbackPage />
             }
           />
 
@@ -81,11 +81,11 @@ const App: React.FC = () => {
               isAuthenticated ? (
                 <Layout>
                   <Routes>
-                    <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/analysis" element={<AnalysisPage />} />
                     <Route path="/data" element={<DataPage />} />
-                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/predictor" element={<RunPredictorPage />} />
+                    <Route path="/" element={<Navigate to="/profile" replace />} />
                   </Routes>
                 </Layout>
               ) : (

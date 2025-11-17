@@ -55,7 +55,7 @@ const AuthCallbackPage: React.FC = () => {
   }, [searchParams, navigate]);
 
   const handleDataLoadingComplete = () => {
-    navigate('/dashboard');
+    navigate('/profile');
   };
 
   if (showDataLoading) {

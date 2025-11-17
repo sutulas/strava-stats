@@ -29,9 +29,9 @@ const LoginPage: React.FC = () => {
 
       // Check if user is already authenticated
       if (authService.isAuthenticated()) {
-        // If user is already authenticated, go directly to dashboard
+        // If user is already authenticated, go directly to profile
         // Data loading will be handled by individual pages as needed
-        window.location.href = '/dashboard';
+        window.location.href = '/profile';
       }
       setIsCheckingAuth(false);
     };
@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
   }, []);
 
   const handleDataLoadingComplete = () => {
-    window.location.href = '/dashboard';
+    window.location.href = '/profile';
   };
 
   const handleStravaLogin = () => {

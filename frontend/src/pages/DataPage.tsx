@@ -60,9 +60,10 @@ const DataPage: React.FC = () => {
 
   const handleDownloadData = async () => {
     try {
-      // Create a CSV download link
-      const csvContent = generateCSVContent();
-      const blob = new Blob([csvContent], { type: 'text/csv' });
+      // Download all data from the API
+      const blob = await apiService.downloadAllData();
+      
+      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -75,21 +76,6 @@ const DataPage: React.FC = () => {
       console.error('Error downloading data:', err);
       setError('Failed to download data. Please try again.');
     }
-  };
-
-  const generateCSVContent = (): string => {
-    if (!dataOverview?.sample_data || dataOverview.sample_data.length === 0) {
-      return 'No data available';
-    }
-
-    const headers = dataOverview.columns.join(',');
-    const rows = dataOverview.sample_data.map(row => 
-      Object.values(row).map(value => 
-        typeof value === 'string' && value.includes(',') ? `"${value}"` : value
-      ).join(',')
-    );
-
-    return [headers, ...rows].join('\n');
   };
 
   if (loading) {
@@ -117,54 +103,134 @@ const DataPage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
-        Data Management
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4" component="h1">
+          Data Management
+        </Typography>
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          spacing={1.5}
+          sx={{ 
+            alignItems: { xs: 'stretch', sm: 'center' }
+          }}
+        >
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={refreshing ? <CircularProgress size={16} /> : <Refresh />}
+            onClick={handleRefreshData}
+            disabled={refreshing}
+            sx={{ 
+              minWidth: { xs: '100%', sm: 'auto' },
+              fontSize: '0.875rem'
+            }}
+          >
+            {refreshing ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<Download />}
+            onClick={handleDownloadData}
+            sx={{
+              backgroundColor: '#FC5200',
+              minWidth: { xs: '100%', sm: 'auto' },
+              fontSize: '0.875rem',
+              '&:hover': {
+                backgroundColor: '#e64a19',
+              },
+            }}
+          >
+            Download CSV
+          </Button>
+        </Stack>
+      </Box>
 
-      <Grid container spacing={3}>
-        {/* Data Overview */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box mb={3}>
-                <Typography variant="h6" gutterBottom>
-                  Data Overview
-                </Typography>
-                <Stack 
-                  direction={{ xs: 'column', sm: 'row' }} 
-                  spacing={2}
-                  sx={{ 
-                    justifyContent: { sm: 'flex-end' },
-                    alignItems: { xs: 'stretch', sm: 'center' }
-                  }}
-                >
-                  <Button
+      <Grid container spacing={2}>
+        {/* Data Overview Stats */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" color="primary" sx={{ fontSize: '1.75rem', mb: 0.5 }}>
+                {dataOverview?.total_activities || 0}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                Total Activities
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" color="primary" sx={{ fontSize: '1.75rem', mb: 0.5 }}>
+                {dataOverview?.date_range.start ? 
+                  new Date(dataOverview.date_range.start).getFullYear() : 
+                  'N/A'
+                }
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                Start Year
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" color="primary" sx={{ fontSize: '1.75rem', mb: 0.5 }}>
+                {dataOverview?.date_range.end ? 
+                  new Date(dataOverview.date_range.end).getFullYear() : 
+                  'N/A'
+                }
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                End Year
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" color="primary" sx={{ fontSize: '1.5rem', mb: 0.5 }}>
+                {dataOverview?.data_loaded_at ? 
+                  new Date(dataOverview.data_loaded_at).toLocaleDateString() : 
+                  'N/A'
+                }
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                Last Updated
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Data Columns */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1.5 }}>
+                Data Fields
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph sx={{ fontSize: '0.875rem', mb: 1.5 }}>
+                Your data includes the following fields:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {dataOverview?.columns.map((column, index) => (
+                  <Chip
+                    key={index}
+                    label={column}
+                    size="small"
                     variant="outlined"
-                    startIcon={refreshing ? <CircularProgress size={20} /> : <Refresh />}
-                    onClick={handleRefreshData}
-                    disabled={refreshing}
-                    sx={{ minWidth: { xs: '100%', sm: 'auto' } }}
-                  >
-                    {refreshing ? 'Refreshing...' : 'Refresh Data'}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<Download />}
-                    onClick={handleDownloadData}
-                    sx={{
-                      backgroundColor: '#FC5200',
-                      minWidth: { xs: '100%', sm: 'auto' },
-                      '&:hover': {
-                        backgroundColor: '#e64a19',
-                      },
+                    sx={{ 
+                      fontSize: '0.75rem',
+                      height: '24px'
                     }}
-                  >
-                    Download CSV
-                  </Button>
-                </Stack>
+                  />
+                ))}
               </Box>
-
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mt: 2 }}>
                 <Link
                   href="https://www.strava.com/athlete/training"
                   target="_blank"
@@ -173,94 +239,60 @@ const DataPage: React.FC = () => {
                     color: '#FC5200',
                     textDecoration: 'underline',
                     fontWeight: 'bold',
-                    fontSize: '0.9rem',
+                    fontSize: '0.8rem',
                   }}
                 >
-                  View on Strava
+                  View on Strava →
                 </Link>
               </Box>
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {dataOverview?.total_activities || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Activities
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {dataOverview?.date_range.start ? 
-                        new Date(dataOverview.date_range.start).getFullYear() : 
-                        'N/A'
-                      }
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Start Year
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {dataOverview?.data_loaded_at ? 
-                        new Date(dataOverview.data_loaded_at).toLocaleDateString() : 
-                        'N/A'
-                      }
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Last Updated
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-
-
-        {/* Data Columns */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Data Fields
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Your data includes the following fields:
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap">
-                {dataOverview?.columns.map((column, index) => (
-                  <Chip
-                    key={index}
-                    label={column}
-                    size="small"
-                    variant="outlined"
-                    sx={{ mb: 1 }}
-                  />
-                ))}
-              </Stack>
             </CardContent>
           </Card>
         </Grid>
 
         {/* Sample Data Table */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Sample Data (First 10 Records)
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1.5 }}>
+                Sample Data (First 3 Records)
               </Typography>
-              <TableContainer component={Paper} sx={{ backgroundColor: '#111111' }}>
-                <Table>
+              <TableContainer 
+                component={Paper} 
+                sx={{ 
+                  backgroundColor: '#111111',
+                  maxHeight: 400,
+                  overflow: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                    height: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: '#1a1a1a',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#333333',
+                    borderRadius: '4px',
+                    '&:hover': {
+                      backgroundColor: '#444444',
+                    },
+                  },
+                }}
+              >
+                <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
                       {dataOverview?.columns.slice(0, 8).map((column, index) => (
-                        <TableCell key={index} sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        <TableCell 
+                          key={index} 
+                          sx={{ 
+                            color: '#ffffff', 
+                            fontWeight: 600,
+                            backgroundColor: '#1a1a1a',
+                            fontSize: '0.75rem',
+                            py: 1,
+                            borderBottom: '1px solid #333333'
+                          }}
+                        >
                           {column}
                         </TableCell>
                       ))}
@@ -268,9 +300,27 @@ const DataPage: React.FC = () => {
                   </TableHead>
                   <TableBody>
                     {dataOverview?.sample_data.slice(0, 10).map((row, rowIndex) => (
-                      <TableRow key={rowIndex}>
+                      <TableRow 
+                        key={rowIndex}
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: '#1a1a1a',
+                          },
+                          '&:nth-of-type(even)': {
+                            backgroundColor: '#0f0f0f',
+                          },
+                        }}
+                      >
                         {dataOverview.columns.slice(0, 8).map((column, colIndex) => (
-                          <TableCell key={colIndex} sx={{ color: '#ffffff' }}>
+                          <TableCell 
+                            key={colIndex} 
+                            sx={{ 
+                              color: '#ffffff',
+                              fontSize: '0.75rem',
+                              py: 0.75,
+                              borderBottom: '1px solid #1a1a1a'
+                            }}
+                          >
                             {typeof row[column] === 'number' 
                               ? row[column].toFixed(2) 
                               : String(row[column] || '')

@@ -85,6 +85,21 @@ export interface RateLimitStatus {
   rate_limited: boolean;
 }
 
+export interface PacePredictionRequest {
+  distance: number;  // in miles
+  heart_rate: number;  // in bpm
+}
+
+export interface PacePredictionResponse {
+  predicted_pace?: number;
+  predicted_time_minutes?: number;
+  predicted_time_hours?: number;
+  desired_distance: number;
+  desired_heart_rate: number;
+  runs_used?: number;
+  error?: string;
+}
+
 class ApiService {
   private getAuthHeaders() {
     const token = localStorage.getItem('strava_access_token');
@@ -203,9 +218,26 @@ class ApiService {
     return response.data;
   }
 
+  // Download all data as CSV
+  async downloadAllData(): Promise<Blob> {
+    const response = await axios.get(`${API_BASE_URL}/data/download`, {
+      headers: this.getAuthHeaders(),
+      responseType: 'blob',
+    });
+    return response.data;
+  }
+
   // Delete user data
   async deleteUserData(): Promise<{ message: string; deleted_files: string[]; timestamp: string; warnings?: string[] }> {
     const response = await axios.delete(`${API_BASE_URL}/data/delete`, {
+      headers: this.getAuthHeaders(),
+    });
+    return response.data;
+  }
+
+  // Predict pace
+  async predictPace(request: PacePredictionRequest): Promise<PacePredictionResponse> {
+    const response = await axios.post(`${API_BASE_URL}/predict/pace`, request, {
       headers: this.getAuthHeaders(),
     });
     return response.data;

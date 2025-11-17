@@ -142,33 +142,34 @@ const ProfilePage: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 2 }}>
         Profile
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={2}>
         {/* User Info Card */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Stack spacing={3} alignItems="center">
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Stack spacing={2} alignItems="center">
                 <Avatar
                   src={userProfile?.profile}
-                  sx={{ width: 120, height: 120 }}
+                  sx={{ width: 80, height: 80 }}
                 />
                 <Box textAlign="center">
-                  <Typography variant="h5" gutterBottom>
+                  <Typography variant="h6" gutterBottom>
                     {userProfile?.firstname} {userProfile?.lastname}
                   </Typography>
-                  <Typography variant="body1" color="text.secondary" gutterBottom>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
                     @{userProfile?.username}
                   </Typography>
                   <Chip
                     label={`${userProfile?.city}, ${userProfile?.state}`}
                     variant="outlined"
-                    sx={{ mt: 1 }}
+                    size="small"
+                    sx={{ mt: 0.5 }}
                   />
-                  <Box sx={{ mt: 2 }}>
+                  <Box sx={{ mt: 1.5 }}>
                     <Link
                       href={`https://www.strava.com/athletes/${userProfile?.id}`}
                       target="_blank"
@@ -177,20 +178,22 @@ const ProfilePage: React.FC = () => {
                         color: '#FC5200',
                         textDecoration: 'underline',
                         fontWeight: 'bold',
-                        fontSize: '0.9rem',
+                        fontSize: '0.8rem',
                       }}
                     >
                       View on Strava
                     </Link>
                   </Box>
-                  <Box sx={{ mt: 3 }}>
+                  <Box sx={{ mt: 1.5 }}>
                     <Button
                       variant="outlined"
                       color="error"
+                      size="small"
                       onClick={handleDeleteDialogOpen}
                       sx={{
                         borderColor: '#f44336',
                         color: '#f44336',
+                        fontSize: '0.75rem',
                         '&:hover': {
                           borderColor: '#d32f2f',
                           backgroundColor: 'rgba(244, 67, 54, 0.1)',
@@ -206,55 +209,105 @@ const ProfilePage: React.FC = () => {
           </Card>
         </Grid>
 
+        {/* Quick Stats */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1.5 }}>
+                Quick Stats
+              </Typography>
+              <Stack spacing={1.5}>
+                <Box>
+                  <Typography variant="h5" color="primary" sx={{ fontSize: '1.75rem' }}>
+                    {userStats?.summary.total_runs || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Total Runs
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h5" color="primary" sx={{ fontSize: '1.75rem' }}>
+                    {userStats?.summary.total_miles && userStats.summary.total_miles > 0 
+                      ? userStats.summary.total_miles.toFixed(1) 
+                      : '0.0'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Total Miles
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Average Stats */}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1.5 }}>
+                Average Stats
+              </Typography>
+              <Stack spacing={1.5}>
+                <Box>
+                  <Typography variant="h6" color="primary" sx={{ fontSize: '1.5rem' }}>
+                    {userStats?.averages.avg_pace && userStats.averages.avg_pace > 0 
+                      ? userStats.averages.avg_pace.toFixed(1) 
+                      : 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Avg Pace (min/mi)
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" color="primary" sx={{ fontSize: '1.5rem' }}>
+                    {userStats?.averages.avg_distance && userStats.averages.avg_distance > 0 
+                      ? userStats.averages.avg_distance.toFixed(1) 
+                      : 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Avg Distance (mi)
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" color="primary" sx={{ fontSize: '1.5rem' }}>
+                    {userStats?.averages.avg_heartrate && userStats.averages.avg_heartrate > 0 
+                      ? userStats.averages.avg_heartrate.toFixed(0) 
+                      : 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Avg Heart Rate (bpm)
+                  </Typography>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* Running Statistics */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1.5 }}>
                 Running Statistics
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {userStats?.summary.total_runs || 0}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Runs
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {userStats?.summary.total_miles?.toFixed(1) || '0.0'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Miles
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {userStats?.summary.total_time_minutes?.toFixed(0) || '0'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Minutes
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <Typography variant="h4" color="primary">
-                      {userStats?.summary.total_elevation?.toFixed(0) || '0'}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Elevation (ft)
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
+              <Stack spacing={1.5}>
+                <Box>
+                  <Typography variant="h6" color="primary" sx={{ fontSize: '1.5rem' }}>
+                    {userStats?.summary.total_time_minutes?.toFixed(0) || '0'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Total Minutes
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" color="primary" sx={{ fontSize: '1.5rem' }}>
+                    {userStats?.summary.total_elevation?.toFixed(0) || '0'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                    Total Elevation (ft)
+                  </Typography>
+                </Box>
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
@@ -262,12 +315,12 @@ const ProfilePage: React.FC = () => {
         {/* Weekly Mileage Chart */}
         <Grid item xs={12} md={6}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1 }}>
                 Weekly Mileage Trend
               </Typography>
               {weeklyData.length > 0 ? (
-                <Box height={300}>
+                <Box height={250}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={weeklyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
@@ -291,8 +344,8 @@ const ProfilePage: React.FC = () => {
                   </ResponsiveContainer>
                 </Box>
               ) : (
-                <Box height={300} display="flex" alignItems="center" justifyContent="center">
-                  <Typography color="text.secondary">No weekly data available</Typography>
+                <Box height={250} display="flex" alignItems="center" justifyContent="center">
+                  <Typography color="text.secondary" sx={{ fontSize: '0.875rem' }}>No weekly data available</Typography>
                 </Box>
               )}
             </CardContent>
@@ -302,12 +355,12 @@ const ProfilePage: React.FC = () => {
         {/* Monthly Runs Chart */}
         <Grid item xs={12} md={6}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1 }}>
                 Monthly Runs
               </Typography>
               {monthlyData.length > 0 ? (
-                <Box height={300}>
+                <Box height={250}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthlyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#333333" />
@@ -325,8 +378,8 @@ const ProfilePage: React.FC = () => {
                   </ResponsiveContainer>
                 </Box>
               ) : (
-                <Box height={300} display="flex" alignItems="center" justifyContent="center">
-                  <Typography color="text.secondary">No monthly data available</Typography>
+                <Box height={250} display="flex" alignItems="center" justifyContent="center">
+                  <Typography color="text.secondary" sx={{ fontSize: '0.875rem' }}>No monthly data available</Typography>
                 </Box>
               )}
             </CardContent>
@@ -336,12 +389,12 @@ const ProfilePage: React.FC = () => {
         {/* Day of Week Distribution */}
         <Grid item xs={12}>
           <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem', mb: 1 }}>
                 Running by Day of Week
               </Typography>
               {dayOfWeekData.length > 0 ? (
-                <Box height={300}>
+                <Box height={250}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -387,8 +440,8 @@ const ProfilePage: React.FC = () => {
                   </ResponsiveContainer>
                 </Box>
               ) : (
-                <Box height={300} display="flex" alignItems="center" justifyContent="center">
-                  <Typography color="text.secondary">No day-of-week data available</Typography>
+                <Box height={250} display="flex" alignItems="center" justifyContent="center">
+                  <Typography color="text.secondary" sx={{ fontSize: '0.875rem' }}>No day-of-week data available</Typography>
                 </Box>
               )}
             </CardContent>

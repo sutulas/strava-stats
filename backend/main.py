@@ -18,6 +18,7 @@ from services.strava_data_service import StravaDataService
 from services.format_data_service import FormatDataService
 from services.user_analytics_service import UserAnalyticsService
 from services.data_manager import data_manager
+from services.run_predictor_service import run_predictor_service
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +38,19 @@ class DataRefreshResponse(BaseModel):
     timestamp: str
     cached_stats: Optional[Dict[str, Any]] = None
     cached_overview: Optional[Dict[str, Any]] = None
+
+class PacePredictionRequest(BaseModel):
+    distance: float  # in miles
+    heart_rate: float  # in bpm
+
+class PacePredictionResponse(BaseModel):
+    predicted_pace: Optional[float] = None
+    predicted_time_minutes: Optional[float] = None
+    predicted_time_hours: Optional[float] = None
+    desired_distance: float
+    desired_heart_rate: float
+    runs_used: Optional[int] = None
+    error: Optional[str] = None
 
 # Create FastAPI app
 app = FastAPI(
@@ -612,6 +626,48 @@ async def delete_user_data(authorization: str = Header(...)):
         logger.error(f"Failed to delete user data: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete user data: {str(e)}")
 
+@app.get("/data/download")
+async def download_all_data(authorization: str = Header(...)):
+    """Download all user data as CSV"""
+    try:
+        # Extract token from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        # Get user profile to extract user_id
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        # Get processed data for the specific user
+        df = data_manager.get_processed_data(user_id)
+        if df is None:
+            raise HTTPException(
+                status_code=404, 
+                detail="No data available. Please refresh your data first."
+            )
+        
+        # Convert DataFrame to CSV
+        csv_content = df.to_csv(index=False)
+        
+        # Create response with CSV content
+        from fastapi.responses import Response
+        return Response(
+            content=csv_content,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=strava-data-{user_id}-{datetime.now().strftime('%Y-%m-%d')}.csv"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to download data: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to download data: {str(e)}")
+
 @app.get("/chart.png")
 async def get_chart():
     """Serve the generated chart image"""
@@ -619,6 +675,54 @@ async def get_chart():
         return FileResponse("chart.png", media_type="image/png")
     else:
         raise HTTPException(status_code=404, detail="Chart not found")
+
+@app.post("/predict/pace", response_model=PacePredictionResponse)
+async def predict_pace(
+    request: PacePredictionRequest,
+    authorization: str = Header(...)
+):
+    """Predict running pace based on historical data and planned run parameters"""
+    try:
+        # Extract token from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header")
+        
+        access_token = authorization.replace("Bearer ", "")
+        
+        # Get user profile to extract user_id
+        strava_service = StravaDataService()
+        user_profile = strava_service.get_user_profile(access_token)
+        user_id = str(user_profile['id']) if user_profile else "unknown_user"
+        
+        # Get processed data from data manager
+        processed_data = data_manager.get_processed_data(user_id)
+        if processed_data is None:
+            raise HTTPException(status_code=404, detail="No data available. Please refresh your data first.")
+        
+        # Make prediction
+        result = run_predictor_service.predict_pace(
+            processed_data,
+            request.distance,
+            request.heart_rate
+        )
+        
+        if result is None:
+            raise HTTPException(status_code=500, detail="Prediction failed")
+        
+        if "error" in result:
+            return PacePredictionResponse(
+                desired_distance=request.distance,
+                desired_heart_rate=request.heart_rate,
+                error=result["error"]
+            )
+        
+        return PacePredictionResponse(**result)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to predict pace: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to predict pace: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(
