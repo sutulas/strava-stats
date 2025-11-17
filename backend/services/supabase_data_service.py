@@ -10,13 +10,22 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import os
 from io import StringIO
-from supabase import create_client, Client
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# Try to import supabase, but make it optional
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+    ClientType = Client
+except ImportError as e:
+    SUPABASE_AVAILABLE = False
+    ClientType = Any
+    logger.warning(f"Supabase not available: {e}. Will use in-memory fallback.")
 
 class SupabaseDataService:
     """
@@ -25,10 +34,14 @@ class SupabaseDataService:
     """
     
     def __init__(self):
-        self.supabase: Optional[Client] = None
+        self.supabase: Optional[ClientType] = None
         self.use_supabase = False
         
         # Try to initialize Supabase
+        if not SUPABASE_AVAILABLE:
+            logger.warning("Supabase package not installed, using in-memory fallback")
+            return
+            
         try:
             supabase_url = os.getenv("SUPABASE_URL")
             supabase_key = os.getenv("SUPABASE_ANON_KEY")
